@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fb7ce03415917af428007da8c6070c70
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences:
+  - attemp1: {fileID: 2800000, guid: 8012104ce15e9e44ca6cd9d237daab37, type: 3}
+  - attemp2: {fileID: 2800000, guid: 03762c8536499a84586119fba67513cf, type: 3}
+  - attemp3: {fileID: 2800000, guid: 92a19822171062445bcfef697ada52dd, type: 3}
+  - attemp4: {fileID: 2800000, guid: a56252b8a5aa62845a6bacf9320d5e98, type: 3}
+  - attemp5: {fileID: 2800000, guid: afb10ebe4c5bcf147a6190dd3c92af78, type: 3}
+  - playerOneScore: {instanceID: 0}
+  - text: {instanceID: 0}
+  executionOrder: 300
+  icon: {instanceID: 0}
+  userData: 

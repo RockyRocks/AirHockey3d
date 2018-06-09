@@ -1,0 +1,252 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>AirHockey</title>
+    %UNITY_UNITYOBJECT_DEPENDENCIES%
+    <script type="text/javascript" src="oddz-web-content-sdk.complete.min.js"></script>
+    <script type="text/javascript">
+    <!--
+    var unityObjectUrl = "%UNITY_UNITYOBJECT_URL%";
+    if (document.location.protocol == 'https:')
+      unityObjectUrl = unityObjectUrl.replace("http://", "https://ssl-");
+    document.write('<script type="text\/javascript" src="' + unityObjectUrl + '"><\/script>');
+    -->
+    </script>
+    <script type="text/javascript">
+    <!--
+      jQuery(function() {
+        var config = {
+          width: %UNITY_WIDTH%,
+          height: %UNITY_HEIGHT%,
+          params: {	backgroundcolor: "A0A0A0",
+             bordercolor: "000000",
+             textcolor: "FFFFFF",
+             logoimage: "Airhockey_logo.png",
+             //progressbarimage: "bar_loading.png",
+             //progressframeimage: "bar_01.png",
+             enableDebugging: "1"}
+        };
+        var u = new UnityObject2(config);
+        var self = this;
+        var SessionFlag="false"; 
+
+        var $missingScreen = jQuery("#unityPlayer").find(".missing");
+        var $brokenScreen = jQuery("#unityPlayer").find(".broken");
+        $missingScreen.hide();
+        $brokenScreen.hide();
+
+        u.observeProgress(function (progress) {
+          switch(progress.pluginStatus) {
+            case "broken":
+              $brokenScreen.find("a").click(function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                u.installPlugin();
+                return false;
+              });
+              $brokenScreen.show();
+            break;
+            case "missing":
+              $missingScreen.find("a").click(function (e) {
+                e.stopPropagation();
+                e.preventDefault();
+                u.installPlugin();
+                return false;
+              });
+              $missingScreen.show();
+            break;
+            case "installed":
+              $missingScreen.remove();
+            break;
+              case "first":               
+                  window.owc = getApi();
+            break;
+          }
+        });
+        u.initPlugin(jQuery("#unityPlayer")[0], "%UNITY_WEB_PATH%");
+
+        function getApi()
+        {
+            var ApiKey = u.getUnity().SendMessage("Oddz","GetApiKey","IsbeingInitialized");
+            var inv = new SwaggerApi(
+                    {
+                        discoveryUrl: 'https://sb.oddz.com/api/v1.2/api-docs/resources.json',
+                        apiKey: ApiKey,
+                        verbose: true,
+                        success: function(data)
+                        {
+                            SessionFlag="true";
+                            u.getUnity().SendMessage("Oddz", "SessionValidate_WEB", SessionFlag);
+                            console.log("validating Api: "+SessionFlag);
+                        },
+                        error: function()
+                        {
+                            SessionFlag="false";
+                            console.log("validating Api failed: "+SessionFlag);
+                        }
+                    } );
+
+            return inv;
+        }
+       
+        window.unity = u;
+        
+      });
+      // This is called with the results from from FB.getLoginStatus().
+      function statusChangeCallback(response) {
+          console.log('statusChangeCallback');
+          console.log(response);
+          // The response object is returned with a status field that lets the
+          // app know the current login status of the person.
+          // Full docs on the response object can be found in the documentation
+          // for FB.getLoginStatus().
+          if (response.status === 'connected') {
+              // Logged into your app and Facebook.
+              testAPI();
+          } else if (response.status === 'not_authorized') {
+              // The person is logged into Facebook, but not your app.
+              document.getElementById('status').innerHTML = 'Please log ' +
+                'into this app.';
+          } else {
+              // The person is not logged into Facebook, so we're not sure if
+              // they are logged into this app or not.
+              document.getElementById('status').innerHTML = 'Please log ' +
+                'into Facebook.';
+          }
+      }
+
+      // This function is called when someone finishes with the Login
+      // Button.  See the onlogin handler attached to it in the sample
+      // code below.
+      function checkLoginState() {
+          FB.getLoginStatus(function(response) {
+              statusChangeCallback(response);
+          });
+      }
+
+      window.fbAsyncInit = function() {
+          FB.init({
+              appId      : '1509019429319937',
+              cookie     : true,  // enable cookies to allow the server to access 
+              // the session
+              xfbml      : true,  // parse social plugins on this page
+              version    : 'v2.0' // use version 2.0
+          });
+
+          // Now that we've initialized the JavaScript SDK, we call 
+          // FB.getLoginStatus().  This function gets the state of the
+          // person visiting this page and can return one of three states to
+          // the callback you provide.  They can be:
+          //
+          // 1. Logged into your app ('connected')
+          // 2. Logged into Facebook, but not your app ('not_authorized')
+          // 3. Not logged into Facebook and can't tell if they are logged into
+          //    your app or not.
+          //
+          // These three cases are handled in the callback function.
+
+          FB.getLoginStatus(function(response) {
+              statusChangeCallback(response);
+          });
+
+      };
+
+      // Load the SDK asynchronously
+      (function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/en_US/sdk.js";
+          fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+
+      // Here we run a very simple test of the Graph API after login is
+      // successful.  See statusChangeCallback() for when this call is made.
+      function testAPI() {
+          console.log('Welcome!  Fetching your information.... ');
+          FB.api('/me', function(response) {
+              console.log('Successful login for: ' + response.name);
+              document.getElementById('status').innerHTML =
+                'Thanks for logging in, ' + response.name + '!';
+          });
+      }
+    -->
+    </script>
+    <style type="text/css">
+    <!--
+        body {
+            /*background-image: url("GameBG.png");*/
+            background-color: #cccccc;
+            font-family: Helvetica, Verdana, Arial, sans-serif;
+            color: black;
+            text-align: center;
+        }
+    a:link, a:visited {
+      color: #000;
+    }
+    a:active, a:hover {
+      color: #666;
+    }
+    p.header {
+      font-size: small;
+    }
+    p.header span {
+      font-weight: bold;
+    }
+    p.footer {
+      font-size: x-small;
+    }
+    div.content {
+      margin: auto;
+      width: %UNITY_WIDTH%px;
+    }
+    div.broken,
+    div.missing {
+      margin: auto;
+      position: relative;
+      top: 50%;
+      width: 193px;
+    }
+    div.broken a,
+    div.missing a {
+      height: 63px;
+      position: relative;
+      top: -31px;
+    }
+    div.broken img,
+    div.missing img {
+      border-width: 0px;
+    }
+    div.broken {
+      display: none;
+    }
+    div#unityPlayer {
+      cursor: default;
+      height: %UNITY_HEIGHT%px;
+      width: %UNITY_WIDTH%px;
+    }
+    -->
+    </style>
+  </head>
+  <body>
+          <p class="header"><span>  </span>%UNITY_WEB_NAME%</p>%UNITY_BETA_WARNING%
+          <div class="content">
+              <div id="unityPlayer">
+                  <div class="missing">
+                      <a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
+                          <img alt="Unity Web Player. Install now!" src="http://webplayer.unity3d.com/installation/getunity.png" width="193" height="63" />
+                      </a>
+                  </div>
+                  <div class="broken">
+                      <a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now! Restart your browser after install.">
+                          <img alt="Unity Web Player. Install now! Restart your browser after install." src="http://webplayer.unity3d.com/installation/getunityrestart.png" width="193" height="63" />
+                      </a>
+                  </div>
+              </div>
+          </div>
+      <div id="status">
+      </div>
+          <p class="footer">&laquo; Hand Crafted By <a href="http://www.tikiinteractive.com" title="Go to tikiinteractive.com">Tiki Interactive Games</a> &raquo;</p>
+      </body>
+</html>
