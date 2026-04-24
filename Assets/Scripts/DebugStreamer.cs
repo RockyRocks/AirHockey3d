@@ -19,7 +19,7 @@ public int numberOfLines = 5;
 public int pixelOffset = 5;
 	
 public GameObject guiObj;
-private GUIText guiTxt;
+private GUI guiTxt;
 private TextAnchor _anchorAt;
 private float _pixelOffset;
 private bool _showLineMovement;
