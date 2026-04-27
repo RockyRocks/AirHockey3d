@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class GameInput : MonoBehaviour
@@ -76,7 +76,7 @@ public class GameInput : MonoBehaviour
 						Puck.Get ().LaunchPuck (force);
 				else 
 				{
-					Puck.Get ().rigidbody.velocity = Vector3.zero;
+					Puck.Get ().GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 					Puck.Get().ResetPuck();
 				}
 				m_IsPuckSelected = false;
@@ -109,8 +109,8 @@ public class GameInput : MonoBehaviour
 			ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 			if (Physics.Raycast (ray, out hit, Mathf.Infinity)) 
 			{
-				Debug.DrawLine (Puck.Get ().rigidbody.position, hit.point, Color.cyan);
-				if (hit.collider.name.Contains ("Puck")) 
+				Debug.DrawLine (Puck.Get ().GetComponent<Rigidbody>().position, hit.point, Color.cyan);
+				if (hit.collider.GetComponent<Collider>().name.Contains ("Puck")) 
 				{
 					m_MouseStartPos = new Vector3 (Input.mousePosition.x, Input.mousePosition.y, Depth);
 					if(!easyslidehack)
@@ -123,7 +123,7 @@ public class GameInput : MonoBehaviour
 			                            Puck.Get ().transform.position.y,
 					                             hit.point.z - CorrectionforMouse);
 					lock_puck.x = Mathf.Clamp (lock_puck.x, -0.37f, 0.37f);
-					Puck.Get ().rigidbody.position = lock_puck;
+					Puck.Get ().GetComponent<Rigidbody>().position = lock_puck;
                     //Previous_position = lock_puck;
 				}
 			}
@@ -146,7 +146,7 @@ public class GameInput : MonoBehaviour
 			if(force.magnitude > 0.3f)
 				Puck.Get ().LaunchPuck (force);
 			else 
-				Puck.Get ().rigidbody.velocity = Vector3.zero;
+				Puck.Get ().GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 			m_IsPuckSelected = false;
 			easyslidehack=false;
 		}
@@ -162,3 +162,5 @@ public class GameInput : MonoBehaviour
 	{
 	}
 }
+
+

@@ -16,9 +16,10 @@ public class DontGoThroughThings : MonoBehaviour
 	//initialize values
 	void Awake() 
 	{
-		myRigidbody = rigidbody;
+		myRigidbody = GetComponent<Rigidbody>();
 		previousPosition = myRigidbody.position;
-		minimumExtent = Mathf.Min(Mathf.Min(collider.bounds.extents.x, collider.bounds.extents.y), collider.bounds.extents.z);
+		var colliderComponent = GetComponent<Collider>();
+		minimumExtent = Mathf.Min(Mathf.Min(colliderComponent.bounds.extents.x, colliderComponent.bounds.extents.y), colliderComponent.bounds.extents.z);
 		partialExtent = minimumExtent*(1.0f - skinWidth);
 		sqrMinimumExtent = minimumExtent*minimumExtent;
 	}

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class PlayerController : MonoBehaviour {
@@ -62,13 +62,13 @@ public class PlayerController : MonoBehaviour {
 
 	void FixedUpdate()
 	{
-		if (IsPuckHit == true || rigidbody.velocity!=Vector3.zero ) 
+		if (IsPuckHit == true || GetComponent<Rigidbody>().linearVelocity!=Vector3.zero ) 
 		{
-			rigidbody.velocity = Vector3.zero;
+			GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 			IsPuckHit=false;
 		}
-		speed = (this.transform.rigidbody.position - this.Last_Position).magnitude / Time.deltaTime;
-		this.Last_Position = this.transform.rigidbody.position;
+		speed = (this.transform.GetComponent<Rigidbody>().position - this.Last_Position).magnitude / Time.deltaTime;
+		this.Last_Position = this.transform.GetComponent<Rigidbody>().position;
 	}
 	
 	// to Add force to puck and giving more momentum for the puddle to simulate close to real life situation..
@@ -81,14 +81,14 @@ public class PlayerController : MonoBehaviour {
 			}
 			//if (col.collider.tag == "Plane"||col.collider.tag=="Board")
 				
-			//col.collider.rigidbody.velocity = col.relativeVelocity / 1.1f;
+			//col.collider.GetComponent<Rigidbody>().velocity = col.relativeVelocity / 1.1f;
 		}
 	}
 	public void Reset()
 	{
 		// have to change this form of code to reflect AIplayer too
 		this.transform.position = InitialPosition;
-		this.rigidbody.velocity = Vector3.zero;
+		this.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 	}
 	public Vector3 HumanPlayer
 	{
@@ -110,3 +110,7 @@ public class PlayerController : MonoBehaviour {
 		}
 	}
 }
+
+
+
+

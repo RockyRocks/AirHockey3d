@@ -1,4 +1,4 @@
-﻿/*==== DebugConsole.cs ====================================================
+/*==== DebugConsole.cs ====================================================
  * Class for handling multi-line, multi-color debugging messages.
  * Original Author: Jeremy Hollingsworth
  * Based On: Version 1.2.1 Mar 02, 2006
@@ -104,7 +104,7 @@ public class DebugConsole : MonoBehaviour
                 if (s_Instance == null)
                 {
                     GameObject console = new GameObject();
-                    console.AddComponent("DebugConsole");
+                    console.AddComponent<DebugConsole>();
                     console.name = "DebugConsoleController";
                     s_Instance = FindObjectOfType(typeof(DebugConsole)) as DebugConsole;
                     DebugConsole.instance.InitGuis();
@@ -134,10 +134,10 @@ public class DebugConsole : MonoBehaviour
 
         if (guisCreated == false)
         {
-            if (DebugGui == null)  // If an external GUIText is not set, provide the default GUIText
+            if (DebugGui == null)  // If an external name is not set, provide the default name
             {
                 DebugGui = new GameObject();
-                DebugGui.AddComponent("GUIText");
+                ;
                 DebugGui.name = "DebugGUI(0)";
                 DebugGui.transform.position = defaultGuiPosition;
                 DebugGui.transform.localScale = defaultGuiScale;
@@ -195,7 +195,7 @@ public class DebugConsole : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
-                if (connectedToMouse == false && DebugGui.guiText.HitTest((Vector3)Input.mousePosition) == true)
+                if (connectedToMouse == false && false)
                 {
                     connectedToMouse = true;
                 }
@@ -283,7 +283,7 @@ public class DebugConsole : MonoBehaviour
             while (x < guis.Count)
             {
                 GameObject gui = (GameObject)guis[x];
-                gui.guiText.text = "";
+                gui.name = "";
                 //increment and loop
                 x += 1;
             }
@@ -347,16 +347,16 @@ public class DebugConsole : MonoBehaviour
                     //set our color
                     switch ((string)colors[x])
                     {
-                        case "normal": gui.guiText.material.color = normal;
+                        case "normal": ;
                             break;
-                        case "warning": gui.guiText.material.color = warning;
+                        case "warning": ;
                             break;
-                        case "error": gui.guiText.material.color = error;
+                        case "error": ;
                             break;
                     }
 
                     //now set the text for this element
-                    gui.guiText.text = (string)messages[x];
+                    gui.name = (string)messages[x];
 
                     //increment and loop
                     x += 1;
@@ -368,3 +368,5 @@ public class DebugConsole : MonoBehaviour
 
 
 }// End DebugConsole Class
+
+

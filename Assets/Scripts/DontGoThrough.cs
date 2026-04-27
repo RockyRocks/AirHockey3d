@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class DontGoThrough : MonoBehaviour 
@@ -16,9 +16,9 @@ public class DontGoThrough : MonoBehaviour
 	//initialize values 
 	void Awake() 
 	{ 
-		myRigidbody = rigidbody; 
+		myRigidbody = GetComponent<Rigidbody>(); 
 		previousPosition = myRigidbody.position; 
-		minimumExtent = Mathf.Min(Mathf.Min(collider.bounds.extents.x, collider.bounds.extents.y), collider.bounds.extents.z); 
+		minimumExtent = Mathf.Min(Mathf.Min(GetComponent<Collider>().bounds.extents.x, GetComponent<Collider>().bounds.extents.y), GetComponent<Collider>().bounds.extents.z); 
 		partialExtent = minimumExtent * (1.0f - skinWidth); 
 		sqrMinimumExtent = minimumExtent * minimumExtent; 
 	} 
@@ -42,3 +42,5 @@ public class DontGoThrough : MonoBehaviour
 		previousPosition = myRigidbody.position; 
 	}
 }
+
+

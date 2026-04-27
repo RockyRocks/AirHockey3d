@@ -19,7 +19,7 @@ public class EndTrigger : MonoBehaviour {
 		{
 			other.transform.position = new Vector3(100,100,100);
 			other.transform.rotation = Quaternion.Euler (Vector3.zero);
-			other.rigidbody.isKinematic = true;
+			other.GetComponent<Rigidbody>().isKinematic = true;
 			//other.gameObject.GetComponent<Pin>().IsFalen = true;
 		}
 	}

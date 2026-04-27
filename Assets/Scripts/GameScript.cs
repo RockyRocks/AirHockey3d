@@ -65,7 +65,7 @@ public class GameScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		audio.Stop();
+		GetComponent<AudioSource>().Stop();
 
 		okButtonRect = new Rect (360, 335, buttonBG.width, buttonBG.height);
 		cancelButtonRect = new Rect (530, 335, buttonBG.width, buttonBG.height);
@@ -148,8 +148,8 @@ public class GameScript : MonoBehaviour {
 	}
 
 	IEnumerator PlayAudio(AudioClip audioClip, string buttonName){
-        audio.volume = Properties.sfxVolume;
-        audio.PlayOneShot(audioClip);
+        GetComponent<AudioSource>().volume = Properties.sfxVolume;
+        GetComponent<AudioSource>().PlayOneShot(audioClip);
 		yield return new WaitForSeconds (audioClip.length);
 		switch (buttonName) {
 		case "Help":
@@ -230,7 +230,7 @@ public class GameScript : MonoBehaviour {
 
 		if(!audioPinPlayed)
 		{
-			audio.volume = Properties.sfxVolume;
+			GetComponent<AudioSource>().volume = Properties.sfxVolume;
 			audioPinPlayed = true;
 		}
 	}
@@ -328,7 +328,7 @@ public class GameScript : MonoBehaviour {
                         break;
 
                     case "Penalty Shot":
-                        Aiplayer.rigidbody.velocity=Vector3.zero;
+                        Aiplayer.GetComponent<Rigidbody>().linearVelocity=Vector3.zero;
                         this.penaltyshot();
                         break;
 
@@ -649,3 +649,4 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.Save();
 	}
 }
+

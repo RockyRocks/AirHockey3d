@@ -16,6 +16,6 @@ public class BGsound : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		audio.volume = Properties.musicVolume;
+		GetComponent<AudioSource>().volume = Properties.musicVolume;
 	}
 }

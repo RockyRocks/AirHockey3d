@@ -40,8 +40,8 @@ public class CameraInfo : MonoBehaviour {
 	
 	// Generate V, P and VP matrices
 	void UpdateCurrentMatrices() {
-		ViewMatrix = camera.worldToCameraMatrix;
-		Matrix4x4 p = camera.projectionMatrix;
+		ViewMatrix = GetComponent<Camera>().worldToCameraMatrix;
+		Matrix4x4 p = GetComponent<Camera>().projectionMatrix;
 		if (m_d3d) {
 			// Invert Y for rendering to a render texture
 			for (int i = 0; i < 4; i++) {
@@ -56,3 +56,4 @@ public class CameraInfo : MonoBehaviour {
 		ViewProjectionMatrix = ProjectionMatrix*ViewMatrix;
 	}
 }
+

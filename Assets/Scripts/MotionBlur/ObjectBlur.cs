@@ -14,7 +14,7 @@ public class ObjectBlur : MonoBehaviour {
 	protected void Start() {
 		// Set up materials
 		m_stretchMaterial = MotionVectorMaterialFactory.NewMaterial();
-		m_regularMaterial = renderer.material;
+		m_regularMaterial = GetComponent<Renderer>().material;
 		
 		// Copy current matrix/position (Avoids blurring the first frame)
 		m_prevModelMatrix = transform.localToWorldMatrix;
@@ -48,12 +48,12 @@ public class ObjectBlur : MonoBehaviour {
 	
 	// Set up for motion vector rendering
 	public void PreMotionRender() {
-		m_regularMaterial = renderer.material;
-		renderer.material = m_stretchMaterial;
+		m_regularMaterial = GetComponent<Renderer>().material;
+		GetComponent<Renderer>().material = m_stretchMaterial;
 	}
 	
 	// Go back to normal rendering
 	public void PostMotionRender() {
-		renderer.material = m_regularMaterial;
+		GetComponent<Renderer>().material = m_regularMaterial;
 	}
 }

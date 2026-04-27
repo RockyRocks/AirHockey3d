@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class Results : MonoBehaviour {
@@ -51,8 +51,8 @@ public class Results : MonoBehaviour {
             StartCoroutine(PlayAudio(WonTickets_audio));
 	}
     IEnumerator PlayAudio(AudioClip audioClip){
-        audio.volume = Properties.sfxVolume;
-        audio.PlayOneShot(audioClip);
+        GetComponent<AudioSource>().volume = Properties.sfxVolume;
+        GetComponent<AudioSource>().PlayOneShot(audioClip);
         yield return new WaitForSeconds(audioClip.length);
     }
 	// Update is called once per frame
@@ -89,3 +89,4 @@ public class Results : MonoBehaviour {
 //		}
 	}
 }
+

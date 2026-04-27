@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -53,7 +53,7 @@ public class PuckBehaviour : MonoBehaviour {
         //StartCoroutine("PuckDrop",(new Vector3(-1f,0f,1.5f)));
             this.challengePositions(Properties.SelectedChallenge);
         }else{
-            this.rigidbody.velocity = new Vector3(Random.Range(2, 5), 0, Random.Range(-3, 4));
+            this.GetComponent<Rigidbody>().linearVelocity = new Vector3(Random.Range(2, 5), 0, Random.Range(-3, 4));
         }
 	}
 	// On Collision Enter event for the velocity update after HumanPlayer or AiPlayer hits the puck
@@ -110,11 +110,11 @@ public class PuckBehaviour : MonoBehaviour {
         if(Properties.GameType==Properties.Modes.PlayforMoney){
             // flagging should be done here
         }
-        if (col.collider.tag == "TWAflag" || col.collider.tag == "TWBflag"){
+        if (col.tag == "TWAflag" || col.tag == "TWBflag"){
             this.Topposthit = true;
 			StartCoroutine(PlayAudio(AiPlayerWallhit));
         }
-        if (col.collider.tag == "BWAflag" || col.collider.tag == "BWBflag"){
+        if (col.tag == "BWAflag" || col.tag == "BWBflag"){
             this.bottomposthit = true;
 			StartCoroutine(PlayAudio(PlayerWallhit));
         }
@@ -124,23 +124,23 @@ public class PuckBehaviour : MonoBehaviour {
 		if (Collided && players!=null) {
 			if(players.Speed<Player_minspeed)
                 players.Speed = Player_minspeed;
-			this.rigidbody.AddForce (_ContactPoint * players.Speed * 2f,ForceMode.Force);
+			this.GetComponent<Rigidbody>().AddForce (_ContactPoint * players.Speed * 2f,ForceMode.Force);
 			Collided=false;
 		}
 		// Take out the Hard Coded stuff.
-		if (this.rigidbody.velocity.z > MaxSpeed)
-						this.rigidbody.velocity = new Vector3(this.rigidbody.velocity.x,
-			                                      this.rigidbody.velocity.y,
+		if (this.GetComponent<Rigidbody>().linearVelocity.z > MaxSpeed)
+						this.GetComponent<Rigidbody>().linearVelocity = new Vector3(this.GetComponent<Rigidbody>().linearVelocity.x,
+			                                      this.GetComponent<Rigidbody>().linearVelocity.y,
 			                                      MaxSpeed);
-		if(this.rigidbody.velocity.z < -MaxSpeed)
-						this.rigidbody.velocity = new Vector3(this.rigidbody.velocity.x,
-			                                      this.rigidbody.velocity.y,
+		if(this.GetComponent<Rigidbody>().linearVelocity.z < -MaxSpeed)
+						this.GetComponent<Rigidbody>().linearVelocity = new Vector3(this.GetComponent<Rigidbody>().linearVelocity.x,
+			                                      this.GetComponent<Rigidbody>().linearVelocity.y,
 			                                      -MaxSpeed);
 	}
 	
 	void PuckReSpawn(){
 		this.transform.position = Vector3.zero;
-		this.rigidbody.velocity = Vector2.zero;
+		this.GetComponent<Rigidbody>().linearVelocity = Vector2.zero;
 	}
     public void Reset(){
         this.PuckReSpawn();
@@ -152,12 +152,12 @@ public class PuckBehaviour : MonoBehaviour {
 	}
 
     public IEnumerable PuckDrop(Vector3 transformPosition){
-        this.transform.rigidbody.position = Vector3.MoveTowards(new Vector3(transformPosition.x, 15f, transformPosition.z), transformPosition, Time.smoothDeltaTime);
+        this.transform.GetComponent<Rigidbody>().position = Vector3.MoveTowards(new Vector3(transformPosition.x, 15f, transformPosition.z), transformPosition, Time.smoothDeltaTime);
         yield return transformPosition;
     }
 	IEnumerator PlayAudio(AudioClip audioClip){
-				audio.volume = Properties.sfxVolume;
-				audio.PlayOneShot (audioClip);
+				this.GetComponent<AudioSource>().volume = Properties.sfxVolume;
+				this.GetComponent<AudioSource>().PlayOneShot (audioClip);
 				yield return new WaitForSeconds (audioClip.length);
 		}
     public void challengePositions(string challengeName){
@@ -172,6 +172,14 @@ public class PuckBehaviour : MonoBehaviour {
     }
     public void RandomPuckReSpawn(){
         this.transform.position = PuckPositions[Random.Range(5, 6)];
-        this.rigidbody.velocity = Vector2.zero;
+        this.GetComponent<Rigidbody>().linearVelocity = Vector2.zero;
     }
 }
+
+
+
+
+
+
+
+

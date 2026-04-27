@@ -26,12 +26,12 @@ public class SurfaceReflection : MonoBehaviour
 	private static bool s_InsideRendering = false;
 	
 	//This is called when it's known that the object will be rendered by some
-	//camera. We render reflections and do other updates here.
+	//GetComponent<Camera>(). We render reflections and do other updates here.
 	//Because the script executes in edit mode, reflections for the scene view
 	//camera will just work!
 	public void OnWillRenderObject()
 	{
-		if(!enabled || !renderer || !renderer.sharedMaterial || !renderer.enabled)
+		if(!enabled || !GetComponent<Renderer>() || !GetComponent<Renderer>().sharedMaterial || !GetComponent<Renderer>().enabled)
 			return;
 		
 		Camera cam = Camera.current;
@@ -87,14 +87,14 @@ public class SurfaceReflection : MonoBehaviour
 		
 		reflectionCamera.cullingMask = ~(1<<4) & m_ReflectLayers.value; //never render water layer
 		reflectionCamera.targetTexture = m_ReflectionTexture;
-		GL.SetRevertBackfacing (true);
+		GL.invertCulling = true;
 		reflectionCamera.transform.position = newpos;
 		Vector3 euler = cam.transform.eulerAngles;
 		reflectionCamera.transform.eulerAngles = new Vector3(0, euler.y, euler.z);
 		reflectionCamera.Render();
 		reflectionCamera.transform.position = oldpos;
-		GL.SetRevertBackfacing (false);
-		Material[] materials = renderer.sharedMaterials;
+		GL.invertCulling = false;
+		Material[] materials = GetComponent<Renderer>().sharedMaterials;
 		foreach(Material mat in materials)
 		{
 			if(mat.HasProperty("_ReflectionTex"))
@@ -154,7 +154,7 @@ public class SurfaceReflection : MonoBehaviour
 				mysky.material = sky.material;
 			}
 		}
-		//update other values to match current camera.
+		//update other values to match current GetComponent<Camera>().
 		//even if we are supplying custom camera&projection matrices,
 		//some of values are used elsewhere (e.g. skybox uses far plane)
 		dest.farClipPlane = src.farClipPlane;
@@ -187,11 +187,11 @@ public class SurfaceReflection : MonoBehaviour
 		if(!reflectionCamera) //catch both not-in-dictionary and in-dictionary-but-deleted-GO
 		{
 			GameObject go = new GameObject("Surface Refl Camera id" + GetInstanceID() + " for " + currentCamera.GetInstanceID(), typeof(Camera), typeof(Skybox));
-			reflectionCamera = go.camera;
+			reflectionCamera = go.GetComponent<Camera>();
 			reflectionCamera.enabled = false;
 			reflectionCamera.transform.position = transform.position;
 			reflectionCamera.transform.rotation = transform.rotation;
-			reflectionCamera.gameObject.AddComponent("FlareLayer");
+			reflectionCamera.gameObject.AddComponent<FlareLayer>();
 			go.hideFlags = HideFlags.HideAndDontSave;
 			m_ReflectionCameras[currentCamera] = reflectionCamera;
 		}        
@@ -258,3 +258,5 @@ public class SurfaceReflection : MonoBehaviour
 		reflectionMat.m33 = 1F;
 	}
 }
+
+

@@ -107,8 +107,8 @@ public class ScoreScript : MonoBehaviour {
 	}
 	
 	IEnumerator PlayAudio(AudioClip audioClip, string buttonName){
-		audio.volume = Properties.sfxVolume;
-		audio.PlayOneShot(audioClip);
+		GetComponent<AudioSource>().volume = Properties.sfxVolume;
+		GetComponent<AudioSource>().PlayOneShot(audioClip);
 		yield return new WaitForSeconds (audioClip.length );
 		switch (buttonName) {
 		case "Back":
@@ -192,3 +192,4 @@ public class ScoreScript : MonoBehaviour {
 		PlayerPrefs.Save();
 	}
 }
+

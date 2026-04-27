@@ -92,19 +92,19 @@ public class SliderScript : MonoBehaviour {
 
 		int value = 0;
 
-		if(transform.rigidbody.collider.bounds.Intersects(trigger300.collider.bounds)||(transform.rigidbody.collider.bounds.Intersects(trigger300_1.collider.bounds))){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger300.GetComponent<Collider>().bounds)||(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger300_1.GetComponent<Collider>().bounds))){
 			value = 300;
 		}else
-			if(transform.rigidbody.collider.bounds.Intersects(trigger400.collider.bounds)||((transform.rigidbody.collider.bounds.Intersects(trigger400_1.collider.bounds)))){
+			if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger400.GetComponent<Collider>().bounds)||((transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger400_1.GetComponent<Collider>().bounds)))){
 				value = 400;
 			}else
-				if(transform.rigidbody.collider.bounds.Intersects(trigger500.collider.bounds)||(transform.rigidbody.collider.bounds.Intersects(trigger500_1.collider.bounds))){
+				if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger500.GetComponent<Collider>().bounds)||(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger500_1.GetComponent<Collider>().bounds))){
 					value = 500;
 				}else
-					if(transform.rigidbody.collider.bounds.Intersects(trigger600.collider.bounds) || (transform.rigidbody.collider.bounds.Intersects(trigger600_1.collider.bounds))){
+					if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger600.GetComponent<Collider>().bounds) || (transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger600_1.GetComponent<Collider>().bounds))){
 						value = 600;
 					}else
-						if(transform.rigidbody.collider.bounds.Intersects(trigger800.collider.bounds)){
+						if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger800.GetComponent<Collider>().bounds)){
 							value = 800;
 						}
 
@@ -113,34 +113,34 @@ public class SliderScript : MonoBehaviour {
 
 	public void RePosition(){
 
-		if(transform.rigidbody.collider.bounds.Intersects(trigger300.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger300.GetComponent<Collider>().bounds)){
 			transform.position = trigger300.transform.position;
 		}else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger400.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger400.GetComponent<Collider>().bounds)){
 			transform.position = trigger400.transform.position;
 		}else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger500.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger500.GetComponent<Collider>().bounds)){
 			transform.position = trigger500.transform.position;
 		}else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger600.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger600.GetComponent<Collider>().bounds)){
 			transform.position = trigger600.transform.position;
 		}else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger800.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger800.GetComponent<Collider>().bounds)){
 			transform.position = trigger800.transform.position;
 		}else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger600_1.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger600_1.GetComponent<Collider>().bounds)){
 			transform.position = trigger300_1.transform.position;
 		}
 		else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger500_1.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger500_1.GetComponent<Collider>().bounds)){
 			transform.position = trigger400_1.transform.position;
 		}
 		else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger400_1.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger400_1.GetComponent<Collider>().bounds)){
 			transform.position = trigger500_1.transform.position;
 		}
 		else
-		if(transform.rigidbody.collider.bounds.Intersects(trigger300_1.collider.bounds)){
+		if(transform.GetComponent<Rigidbody>().GetComponent<Collider>().bounds.Intersects(trigger300_1.GetComponent<Collider>().bounds)){
 			transform.position = trigger600_1.transform.position;
 		}
 

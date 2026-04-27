@@ -41,21 +41,23 @@ public class AIPlayer : PlayerController {
         if (Properties.SelectedChallenge == "Penalty Shot")
             return;
 
-		if (IsPuckHit == true || this.rigidbody.velocity!=Vector3.zero) {
-			rigidbody.velocity = Vector3.zero;
+		
+		if (IsPuckHit == true || this.GetComponent<Rigidbody>().linearVelocity != Vector3.zero) {
+			this.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 			IsPuckHit=false;
 		}
-		// Defense after Contact and delay between the Defense and attack about 2 to 8 sec.
-        if (Puck.rigidbody.velocity.z > 4 || Puck.rigidbody.velocity.z < -3) {
+        var puckVelocity = Puck.GetComponent<Rigidbody>().linearVelocity;
+        // Defense after Contact and delay between the Defense and attack about 2 to 8 sec.
+        if (puckVelocity.z > 4 || puckVelocity.z < -3) {
             this.AI_Defense(AiPlayerPosition.x, AiPlayerPosition.z,
-                             PuckPosition.x, PuckPosition.z, Puck.rigidbody.velocity.z);
+                             PuckPosition.x, PuckPosition.z, puckVelocity.z);
             return;
         }
 		// make decision
 		this.AI_MakeDecision (AiPlayerPosition.x, AiPlayerPosition.z,
-		                      PuckPosition.x, PuckPosition.z, Puck.rigidbody.velocity);
+		                      PuckPosition.x, PuckPosition.z, puckVelocity);
     
-		PuckVelocity = Puck.rigidbody.velocity;
+		PuckVelocity = Puck.GetComponent<Rigidbody>().linearVelocity;
 
 
 		speed = (this.transform.position - this.Last_Position).magnitude / Time.deltaTime;
@@ -118,7 +120,7 @@ public class AIPlayer : PlayerController {
 	}
 
 	void AI_EvadetheCorners(/*Vector3 PosA,Vector3 PosB*/){
-		this.Puck.rigidbody.AddForce (-Puck.AiPlayerHitpoint *3f * Time.deltaTime);
+		this.Puck.GetComponent<Rigidbody>().AddForce(-Puck.AiPlayerHitpoint * 3f * Time.deltaTime);
 //		float i = 0.0f;
 //		float rate = 1.0f / 3.0f;
 //		while (i < 1.0f) {

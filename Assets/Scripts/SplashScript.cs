@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 
@@ -22,7 +22,7 @@ public class SplashScript : MonoBehaviour {
 	void Start () {
         Debug.Log("we are inside the splash script");
 
-		//audio.Play ();
+		//GetComponent<AudioSource>().Play ();
 
 	}
 
@@ -112,3 +112,4 @@ public class SplashScript : MonoBehaviour {
         }
 	}
 }
+

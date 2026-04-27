@@ -11,7 +11,7 @@ public class FacebookSettingsEditor : Editor
 {
     bool showFacebookInitSettings = false;
     bool showAndroidUtils = (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android);
-    bool showIOSSettings = (EditorUserBuildSettings.activeBuildTarget == BuildTarget.iPhone);
+    bool showIOSSettings = (EditorUserBuildSettings.activeBuildTarget == BuildTarget.iOS);
 
     GUIContent appNameLabel = new GUIContent("App Name [?]:", "For your own use and organization.\n(ex. 'dev', 'qa', 'prod')");
     GUIContent appIdLabel = new GUIContent("App Id [?]:", "Facebook App Ids can be found at https://developers.facebook.com/apps");
@@ -163,7 +163,7 @@ public class FacebookSettingsEditor : Editor
                 EditorGUILayout.HelpBox(msg, MessageType.Warning);
             }
             EditorGUILayout.HelpBox("Copy and Paste these into your \"Native Android App\" Settings on developers.facebook.com/apps", MessageType.None);
-            SelectableLabelField(packageNameLabel, PlayerSettings.bundleIdentifier);
+            SelectableLabelField(packageNameLabel, PlayerSettings.applicationIdentifier);
             SelectableLabelField(classNameLabel, ManifestMod.DeepLinkingActivityName);
             SelectableLabelField(debugAndroidKeyLabel, FacebookAndroidUtil.DebugKeyHash);
             if (GUILayout.Button("Regenerate Android Manifest"))

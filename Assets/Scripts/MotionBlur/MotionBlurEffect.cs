@@ -39,7 +39,7 @@ public class MotionBlurEffect : ImageEffectBase {
 	virtual protected void Awake() {
 		GameObject velocityCameraObject = new GameObject("Velocity Camera (Auto-generated)", typeof(Camera));
 		velocityCameraObject.transform.parent = transform;
-		m_velocityCamera = velocityCameraObject.camera;
+		m_velocityCamera = velocityCameraObject.GetComponent<Camera>();
 		velocityCameraObject.SetActive(false);
 	}
 	
@@ -55,7 +55,7 @@ public class MotionBlurEffect : ImageEffectBase {
 		RenderTexture velocityTexture = RenderTexture.GetTemporary(source.width, source.height, 24);
 		
 		// Make sure that the velocity camera is the same as the regular one
-		m_velocityCamera.CopyFrom(camera);
+		m_velocityCamera.CopyFrom(GetComponent<Camera>());
 		// Clear with zero velocity in XY, encoded in RGBA
 		// These are the values for EncodeFloatRG(0.5) from UnityCG.cginc
 		m_velocityCamera.backgroundColor = new Color(0.4980392f, 0.5f, 0.4980392f, 0.5f);
@@ -88,3 +88,5 @@ public class MotionBlurEffect : ImageEffectBase {
 		RenderTexture.ReleaseTemporary(velocityTexture);
 	}
 }
+
+

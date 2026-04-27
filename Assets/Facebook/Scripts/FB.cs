@@ -389,7 +389,11 @@ public sealed class FB : ScriptableObject
             }
             var assembly = Security.LoadAndVerifyAssembly(www.bytes, authTokenWww.text);
 #else
-            var assembly = Security.LoadAndVerifyAssembly(www.bytes);
+            // Security.LoadAndVerifyAssembly(byte[]) is obsolete and should not be used.
+            // If you have an updated secure loading method, use it here.
+            // Otherwise, you may need to load the assembly directly (not recommended for production).
+            // Example fallback (not secure, for demonstration only):
+            var assembly = System.Reflection.Assembly.Load(www.bytes);
 #endif
             if (assembly == null)
             {

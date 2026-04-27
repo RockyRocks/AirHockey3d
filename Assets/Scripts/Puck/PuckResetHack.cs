@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class PuckResetHack : MonoBehaviour {
@@ -19,10 +19,11 @@ public class PuckResetHack : MonoBehaviour {
 		//This is not final we have to fix the PUCK going out of table bug.
 		if(other.name.Contains ("Puck"))
 		{
-			Debug.LogError ("PUCK gone out of table, \nVelocity: " + other.rigidbody.velocity.magnitude);
-			Debug.LogError ("\nForce: " + other.rigidbody.velocity + "resetting it (it's a HACK, dont forget to Fix!!)");
+			Debug.LogError ("PUCK gone out of table, \nVelocity: " + other.GetComponent<Rigidbody>().linearVelocity.magnitude);
+			Debug.LogError ("\nForce: " + other.GetComponent<Rigidbody>().linearVelocity + "resetting it (it's a HACK, dont forget to Fix!!)");
 			
 			Puck.Get ().ResetPuck ();
 		}
 	}
 }
+

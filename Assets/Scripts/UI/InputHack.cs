@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class InputHack : MonoBehaviour
@@ -17,8 +17,10 @@ public class InputHack : MonoBehaviour
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit)) {
             
-            if(hit.collider.tag=="BG")
+            if(hit.collider.GetComponent<Collider>().tag=="BG")
                 Debug.Log(hit.point.x);
         }
     }
 }
+
+

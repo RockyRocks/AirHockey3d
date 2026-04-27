@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class Puck : MonoBehaviour
@@ -53,7 +53,7 @@ public class Puck : MonoBehaviour
 	//private Vector3 fc;
 	void FixedUpdate()
 	{
-		puckVelocity = rigidbody.velocity.magnitude;
+		puckVelocity = GetComponent<Rigidbody>().linearVelocity.magnitude;
 //		if((_puckVelocity <= 0.00f && GameInput.Get().m_LineCrossed == true))
 //		{
 //		}
@@ -63,13 +63,13 @@ public class Puck : MonoBehaviour
 	{
         var LaunchForceZ = Mathf.Clamp(force.z * m_Velocity, -m_maxSpeed, -m_minSpeed);
         force = new Vector3(force.x * m_Velocity, force.y, LaunchForceZ);
-		rigidbody.AddForce (force , ForceMode.Force);
+		GetComponent<Rigidbody>().AddForce (force , ForceMode.Force);
         //newForce = force;
 		IsPuckLaunched = true;
         try
         {
-			audio.volume = Properties.sfxVolume;
-            audio.PlayOneShot(puckReleasedClip);
+			GetComponent<AudioSource>().volume = Properties.sfxVolume;
+            GetComponent<AudioSource>().PlayOneShot(puckReleasedClip);
         }
         catch (System.Exception)
         {
@@ -84,17 +84,17 @@ public class Puck : MonoBehaviour
 
 
 	void Update(){
-        if (this.rigidbody.position.z > 1.4f 
-		            && this.rigidbody.position.z < 1.90f )
+        if (this.GetComponent<Rigidbody>().position.z > 1.4f 
+		            && this.GetComponent<Rigidbody>().position.z < 1.90f )
         {
             Properties.S_CantakeInputs = true;
 			if(GameInput.Get()!=null)
             GameInput.Get().m_LineCrossed = false;
-          //  Debug.Log("I am checking for puck position here" + this.rigidbody.position.z);
+          //  Debug.Log("I am checking for puck position here" + this.GetComponent<Rigidbody>().position.z);
         }
         else
         {
-          //  Debug.Log("Stopping the inputs since puck is not in the input zone" + this.rigidbody.position.z);
+          //  Debug.Log("Stopping the inputs since puck is not in the input zone" + this.GetComponent<Rigidbody>().position.z);
             Properties.S_CantakeInputs = false;
 			if(GameInput.Get()!=null)
             GameInput.Get().m_LineCrossed = true;
@@ -125,8 +125,8 @@ public class Puck : MonoBehaviour
 //		if (collision.gameObject.tag == "EndBlock") {
 //			var hitPoint=collision.contacts[0];
 //			var newNormal= new Vector3(hitPoint.normal.x,0,-hitPoint.normal.z);
-//			this.rigidbody.velocity=Vector3.Reflect(this.rigidbody.velocity,newNormal);
-//			Debug.Log("Trying to reflect the velocity: "+this.rigidbody.velocity);
+//			this.GetComponent<Rigidbody>().velocity=Vector3.Reflect(this.GetComponent<Rigidbody>().velocity,newNormal);
+//			Debug.Log("Trying to reflect the velocity: "+this.GetComponent<Rigidbody>().velocity);
 //				}
 	}
 	
@@ -137,7 +137,7 @@ public class Puck : MonoBehaviour
 
 	public void ResetPuck()
 	{ 
-		rigidbody.velocity = Vector3.zero; //Zero the velocity
+		GetComponent<Rigidbody>().linearVelocity = Vector3.zero; //Zero the velocity
 		transform.position = _basePos;
 		GameInput.Get().m_LineCrossed = false;
 		IsPuckLaunched = false;
@@ -236,3 +236,4 @@ public class Puck : MonoBehaviour
 		return m_Transform;
 	}
 }
+
