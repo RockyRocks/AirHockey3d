@@ -60,8 +60,7 @@ public class AIPlayer : PlayerController {
 		PuckVelocity = Puck.GetComponent<Rigidbody>().linearVelocity;
 
 
-		speed = (this.transform.position - this.Last_Position).magnitude / Time.deltaTime;
-		this.Last_Position = this.transform.position;
+		SampleMotion();
 
 	}
 	// Need to attach joints for predicting the pucks movement for attack 

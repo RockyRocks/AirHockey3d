@@ -38,7 +38,14 @@ public class PuckBehaviour : MonoBehaviour {
     public bool Topposthit = false;
     public bool bottomposthit = false;
 	// Use this for initialization
+	private Vector3 previousPlanarPosition;
+	private float puckRadius = 0.12f;
+	private bool sweptRailThisStep;
+
 	void Start () {
+		ConfigurePuckBody();
+		AirHockeySurfaceMaterials.ApplyToScene();
+		previousPlanarPosition = transform.position;
 		//players = GameObject.FindGameObjectWithTag ("Player").GetComponent<PlayerController> ();
 		if(Properties.GameType==Properties.Modes.PlayforMoney){
         PuckPositions = new Vector3[] { 
@@ -63,6 +70,7 @@ public class PuckBehaviour : MonoBehaviour {
 				_ContactPoint=col.contacts[0].normal;
                 players = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
                 this.Collided = true;
+                ApplyMalletStrike(col);
                 this.PlayerHits += 1;
                 if (this.AIPlayerCourt){
                     this.HumanPlayerCourt = false;
@@ -77,6 +85,7 @@ public class PuckBehaviour : MonoBehaviour {
 				AiPlayerHitpoint=_ContactPoint;
                 players = GameObject.FindGameObjectWithTag("AIPlayer").GetComponent<PlayerController>();
                 this.Collided = true;
+                ApplyMalletStrike(col);
             if(!this.AIPlayerCourt)
                 this.AIPlayerHits += 1;
                 this.AIPlayerCourt = true;
@@ -104,6 +113,8 @@ public class PuckBehaviour : MonoBehaviour {
              && Properties.GameType == Properties.Modes.PlayforMoney){
             Properties.NoofWalls += 1;
          }
+         if (IsRailCollision(col))
+            ApplyRailBounce(col);
 	}
 
     void OnTriggerEnter(Collider col){
@@ -121,26 +132,142 @@ public class PuckBehaviour : MonoBehaviour {
     }
 
 	void FixedUpdate(){
-		if (Collided && players!=null) {
-			if(players.Speed<Player_minspeed)
-                players.Speed = Player_minspeed;
-			this.GetComponent<Rigidbody>().AddForce (_ContactPoint * players.Speed * 2f,ForceMode.Force);
-			Collided=false;
+		Rigidbody body = GetComponent<Rigidbody>();
+		// The mallet strike is applied in OnCollisionEnter from the mallet's
+		// planar velocity. Collided is cleared here so a single contact cannot
+		// stack a second impulse on the next physics step.
+		Collided = false;
+		sweptRailThisStep = false;
+
+		Vector3 velocity = FromNumerics(PuckCollisionMath.ApplyAirDrag(
+			ToNumerics(body.linearVelocity),
+			PuckCollisionMath.AirDragPerSecond,
+			Time.fixedDeltaTime));
+		velocity = FromNumerics(PuckCollisionMath.ClampPlanarSpeed(ToNumerics(velocity), MaxSpeed));
+		body.linearVelocity = velocity;
+		LockToTable(body);
+		PreventRailTunnel(body);
+	}
+
+	void ConfigurePuckBody()
+	{
+		Rigidbody body = GetComponent<Rigidbody>();
+		body.useGravity = false;
+		body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+		body.interpolation = RigidbodyInterpolation.Interpolate;
+		body.constraints = RigidbodyConstraints.FreezePositionY | RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+		body.linearDamping = 0.02f;
+		body.angularDamping = 0.35f;
+		body.maxDepenetrationVelocity = 3f;
+		Collider puckCollider = GetComponent<Collider>();
+		if (puckCollider != null)
+		{
+			puckCollider.material = AirHockeySurfaceMaterials.Puck;
+			puckRadius = Mathf.Max(puckCollider.bounds.extents.x, puckCollider.bounds.extents.z);
 		}
-		// Take out the Hard Coded stuff.
-		if (this.GetComponent<Rigidbody>().linearVelocity.z > MaxSpeed)
-						this.GetComponent<Rigidbody>().linearVelocity = new Vector3(this.GetComponent<Rigidbody>().linearVelocity.x,
-			                                      this.GetComponent<Rigidbody>().linearVelocity.y,
-			                                      MaxSpeed);
-		if(this.GetComponent<Rigidbody>().linearVelocity.z < -MaxSpeed)
-						this.GetComponent<Rigidbody>().linearVelocity = new Vector3(this.GetComponent<Rigidbody>().linearVelocity.x,
-			                                      this.GetComponent<Rigidbody>().linearVelocity.y,
-			                                      -MaxSpeed);
+	}
+
+	void ApplyMalletStrike(Collision col)
+	{
+		if (players == null || col.contactCount == 0)
+			return;
+		Vector3 physicsMallet = col.rigidbody != null ? col.rigidbody.linearVelocity : Vector3.zero;
+		Vector3 puckIncoming = col.relativeVelocity + physicsMallet;
+		Vector3 malletVelocity = players.PlanarVelocity;
+		if (malletVelocity.magnitude < Player_minspeed)
+			malletVelocity = _ContactPoint.sqrMagnitude > 1e-6f ? _ContactPoint.normalized * Player_minspeed : malletVelocity;
+		System.Numerics.Vector3 resolved = PuckCollisionMath.ResolveMalletHit(
+			ToNumerics(puckIncoming),
+			ToNumerics(malletVelocity),
+			ToNumerics(_ContactPoint),
+			PuckCollisionMath.MalletRestitution,
+			Player_minspeed);
+		resolved = PuckCollisionMath.ClampPlanarSpeed(resolved, MaxSpeed);
+		GetComponent<Rigidbody>().linearVelocity = FromNumerics(resolved);
+	}
+
+	void ApplyRailBounce(Collision col)
+	{
+		if (sweptRailThisStep || col.contactCount == 0)
+			return;
+		Vector3 normal = col.contacts[0].normal;
+		System.Numerics.Vector3 resolved = PuckCollisionMath.ResolveRail(
+			ToNumerics(col.relativeVelocity),
+			ToNumerics(normal),
+			PuckCollisionMath.RailRestitution,
+			PuckCollisionMath.RailFriction);
+		resolved = PuckCollisionMath.ClampPlanarSpeed(resolved, MaxSpeed);
+		GetComponent<Rigidbody>().linearVelocity = FromNumerics(resolved);
+	}
+
+	bool IsRailCollision(Collision col)
+	{
+		string tag = col.collider.tag;
+		if (tag == "Player" || tag == "AIPlayer" || tag == "GoalPostBottom" || tag == "GoalPostTop" || tag == "Puck")
+			return false;
+		int wallLayer = LayerMask.NameToLayer("Walls");
+		if (wallLayer >= 0 && col.collider.gameObject.layer == wallLayer)
+			return true;
+		string name = col.collider.gameObject.name;
+		return name.IndexOf("Wall", System.StringComparison.OrdinalIgnoreCase) >= 0
+			|| name.IndexOf("Rail", System.StringComparison.OrdinalIgnoreCase) >= 0
+			|| name.IndexOf("Board", System.StringComparison.OrdinalIgnoreCase) >= 0;
+	}
+
+	void LockToTable(Rigidbody body)
+	{
+		Vector3 position = body.position;
+		position.y = 0f;
+		body.position = position;
+		Vector3 angular = body.angularVelocity;
+		angular.x = 0f;
+		angular.z = 0f;
+		body.angularVelocity = angular;
+	}
+
+	void PreventRailTunnel(Rigidbody body)
+	{
+		Vector3 current = body.position;
+		current.y = 0f;
+		Vector3 movement = current - previousPlanarPosition;
+		float distance = movement.magnitude;
+		if (distance > puckRadius * 0.25f)
+		{
+			int wallLayer = LayerMask.NameToLayer("Walls");
+			int mask = wallLayer >= 0 ? (1 << wallLayer) : Physics.DefaultRaycastLayers;
+			Vector3 direction = movement / distance;
+			if (Physics.SphereCast(previousPlanarPosition, puckRadius * 0.85f, direction, out RaycastHit hit, distance, mask, QueryTriggerInteraction.Ignore))
+			{
+				body.position = hit.point + hit.normal * puckRadius;
+				System.Numerics.Vector3 bounced = PuckCollisionMath.ResolveRail(
+					ToNumerics(body.linearVelocity),
+					ToNumerics(hit.normal),
+					PuckCollisionMath.RailRestitution,
+					PuckCollisionMath.RailFriction);
+				body.linearVelocity = FromNumerics(PuckCollisionMath.ClampPlanarSpeed(bounced, MaxSpeed));
+				sweptRailThisStep = true;
+				current = body.position;
+			}
+		}
+		previousPlanarPosition = current;
+	}
+
+	static System.Numerics.Vector3 ToNumerics(Vector3 value)
+	{
+		return new System.Numerics.Vector3(value.x, value.y, value.z);
+	}
+
+	static Vector3 FromNumerics(System.Numerics.Vector3 value)
+	{
+		return new Vector3(value.X, value.Y, value.Z);
 	}
 	
 	void PuckReSpawn(){
 		this.transform.position = Vector3.zero;
-		this.GetComponent<Rigidbody>().linearVelocity = Vector2.zero;
+		Rigidbody body = GetComponent<Rigidbody>();
+		body.linearVelocity = Vector3.zero;
+		body.angularVelocity = Vector3.zero;
+		previousPlanarPosition = Vector3.zero;
 	}
     public void Reset(){
         this.PuckReSpawn();
@@ -171,8 +298,11 @@ public class PuckBehaviour : MonoBehaviour {
         }
     }
     public void RandomPuckReSpawn(){
-        this.transform.position = PuckPositions[Random.Range(5, 6)];
-        this.GetComponent<Rigidbody>().linearVelocity = Vector2.zero;
+        this.transform.position = PuckPositions[Random.Range(0, PuckPositions.Length)];
+        Rigidbody body = GetComponent<Rigidbody>();
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+        previousPlanarPosition = transform.position;
     }
 }
 
