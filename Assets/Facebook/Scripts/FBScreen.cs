@@ -44,7 +44,7 @@ public class FBScreen {
         else
         {
             resizable = false;
-            Application.ExternalCall("IntegratedPluginCanvas.setResolution", width, height);
+            LegacyWebPlayer.Call("IntegratedPluginCanvas.setResolution", width, height);
             SetLayout(layoutParams);
         }
 #endif
@@ -57,7 +57,7 @@ public class FBScreen {
         Screen.SetResolution(newWidth, Screen.height, Screen.fullScreen);
 #else
         resizable = true;
-        Application.ExternalCall("IntegratedPluginCanvas.setAspectRatio", width, height);
+        LegacyWebPlayer.Call("IntegratedPluginCanvas.setAspectRatio", width, height);
         SetLayout(layoutParams);
 #endif
     }
@@ -65,7 +65,7 @@ public class FBScreen {
     public static void SetUnityPlayerEmbedCSS(string key, string value)
     {
 #if UNITY_WEBPLAYER
-        Application.ExternalEval(string.Format("$(\"#unityPlayerEmbed\").css(\"{0}\",\"{1}\")", key, value));
+        LegacyWebPlayer.Eval(string.Format("$(\"#unityPlayerEmbed\").css(\"{0}\",\"{1}\")", key, value));
 #endif
     }
 
@@ -110,7 +110,7 @@ public class FBScreen {
                 SetUnityPlayerEmbedCSS("margin-left", layoutLeft.Amount + "px");
                 SetUnityPlayerEmbedCSS("padding-left", "0px");
                 // remove the horizontal centering align function listener if it's there
-                Application.ExternalEval(@"
+                LegacyWebPlayer.Eval(@"
                     if (typeof fbCenterWebPlayerHorizontally == ""function"") 
                     {
                         $(window).off(""resize"", fbCenterWebPlayerHorizontally);
@@ -125,7 +125,7 @@ public class FBScreen {
                 SetUnityPlayerEmbedCSS("margin-top", layoutTop.Amount + "px");
                 SetUnityPlayerEmbedCSS("padding-top", "0px");
                 // remove the vertical centering align function listener if it's there
-                Application.ExternalEval(@"
+                LegacyWebPlayer.Eval(@"
                     if (typeof fbCenterWebPlayerVertically == ""function"") 
                     {
                         $(window).off(""resize"", fbCenterWebPlayerVertically);
@@ -137,7 +137,7 @@ public class FBScreen {
             var layoutCenterHorizontal = parameter as Layout.OptionCenterHorizontal;
             if (layoutCenterHorizontal != null)
             {
-                Application.ExternalEval(@"
+                LegacyWebPlayer.Eval(@"
                     function fbCenterWebPlayerHorizontally(){
                         $(""#unityPlayerEmbed"").css(
                             ""margin-left"", 
@@ -152,7 +152,7 @@ public class FBScreen {
             var layoutCenterVertical = parameter as Layout.OptionCenterVertical;
             if (layoutCenterVertical != null)
             {
-                Application.ExternalEval(@"
+                LegacyWebPlayer.Eval(@"
                     function fbCenterWebPlayerVertically(){
                         $(""#unityPlayerEmbed"").css(
                             ""margin-top"", 

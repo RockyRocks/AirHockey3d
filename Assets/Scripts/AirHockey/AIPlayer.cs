@@ -20,16 +20,14 @@ public class AIPlayer : PlayerController {
 	// AI Player Initial Spawning Position
 		this.InitialPosition = new Vector3 (0f, 0f, 3.6f);
 		this.transform.position = InitialPosition;
+		var body = GetComponent<Rigidbody>();
+		if (body != null)
+			AirHockeyPhysics.ConfigurePaddle(body);
 		Puck = GameObject.FindGameObjectWithTag ("Puck").GetComponent<PuckBehaviour> ();
 	}
 	// Update is called once per frame
 	void Update () {
 		// Lock the AI player to his boundaries 
-		var pos = this.transform.position;
-		pos.x = Mathf.Clamp(pos.x , -2.7f, 2.7f);
-		pos.z = Mathf.Clamp(pos.z , 0.5f, 3.7f);
-		this.transform.position = pos;
-
 		AiPlayerPosition = this.transform.position;
 		PuckPosition = Puck.transform.position;
 		if (Puck.transform.position == Vector3.zero) {
@@ -42,10 +40,7 @@ public class AIPlayer : PlayerController {
             return;
 
 		
-		if (IsPuckHit == true || this.GetComponent<Rigidbody>().linearVelocity != Vector3.zero) {
-			this.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
-			IsPuckHit=false;
-		}
+		IsPuckHit=false;
         var puckVelocity = Puck.GetComponent<Rigidbody>().linearVelocity;
         // Defense after Contact and delay between the Defense and attack about 2 to 8 sec.
         if (puckVelocity.z > 4 || puckVelocity.z < -3) {
@@ -58,11 +53,7 @@ public class AIPlayer : PlayerController {
 		                      PuckPosition.x, PuckPosition.z, puckVelocity);
     
 		PuckVelocity = Puck.GetComponent<Rigidbody>().linearVelocity;
-
-
-		speed = (this.transform.position - this.Last_Position).magnitude / Time.deltaTime;
 		this.Last_Position = this.transform.position;
-
 	}
 	// Need to attach joints for predicting the pucks movement for attack 
 	// or Defense.
@@ -90,9 +81,7 @@ public class AIPlayer : PlayerController {
 	// Right it just hovers over the defense line with respect to mouse movement (Bad way of doing).
 	void AIHover(){
 		var HumanPosition = this.HumanPlayer;
-		this.transform.position = Vector3.MoveTowards(this.transform.position,
-		                                       new Vector3(HumanPosition.x, 0f, 3.7f),
-		                                       Time.smoothDeltaTime);
+		MovePaddle(new Vector3(HumanPosition.x, transform.position.y, 3.7f), 2.5f);
 	}
 
 	// We do not need to check for collisions since these two are rigid bodies physics will handle these 
@@ -109,14 +98,33 @@ public class AIPlayer : PlayerController {
 		#region puckBehavior Joints
 		#endregion
 		// move Ai paddle to that new position;
-		this.transform.position=Vector3.MoveTowards(this.transform.position,Puck.transform.position,PlayerVelocity);
+		float stepSpeed = PlayerVelocity / Mathf.Max(Time.fixedDeltaTime, 0.0001f);
+		MovePaddle(Puck.transform.position, Mathf.Clamp(stepSpeed, 1.5f, 10f));
 	}
 
 	// change the code weights are taking so much time 
 	//make it simple hovering after and before the puck hit at a defense line just above the goal post.
 	void AI_Defense(float x,float z,float px,float pz,float Velocity){
 		Velocity=Mathf.Abs(Velocity) * Time.smoothDeltaTime;
-		this.transform.position = Vector3.Lerp (this.transform.position, new Vector3 (px, 0f, 3.6f), Velocity);
+		float defenseSpeed = Mathf.Clamp(Mathf.Abs(Velocity) / Mathf.Max(Time.fixedDeltaTime, 0.0001f), 2f, 10f);
+		MovePaddle(new Vector3(px, transform.position.y, 3.6f), defenseSpeed);
+	}
+
+	void MovePaddle(Vector3 target, float metersPerSecond)
+	{
+		var body = GetComponent<Rigidbody>();
+		Vector3 current = body != null ? body.position : transform.position;
+		target.y = current.y;
+		target.x = Mathf.Clamp(target.x, -2.7f, 2.7f);
+		target.z = Mathf.Clamp(target.z, 0.5f, 3.7f);
+		Vector3 next = Vector3.MoveTowards(current, target, metersPerSecond * Time.fixedDeltaTime);
+		PlanarVelocity = (next - current) / Mathf.Max(Time.fixedDeltaTime, 0.0001f);
+		PlanarVelocity.y = 0f;
+		speed = PlanarVelocity.magnitude;
+		if (body != null)
+			body.MovePosition(next);
+		else
+			transform.position = next;
 	}
 
 	void AI_EvadetheCorners(/*Vector3 PosA,Vector3 PosB*/){

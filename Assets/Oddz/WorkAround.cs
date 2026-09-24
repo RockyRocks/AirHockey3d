@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 // This class is used to delete all the game objects  once the scene is unloading.
 public class WorkAround : MonoBehaviour {
@@ -22,7 +23,6 @@ public class WorkAround : MonoBehaviour {
 				}
 			}
 		}
-		// Additively load the specified level
-		Application.LoadLevelAdditive(level);
+		SceneManager.LoadScene(level, LoadSceneMode.Single);
 	}
 }
