@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 // This class is used to delete all the game objects  once the scene is unloading.
@@ -7,7 +8,7 @@ public class WorkAround : MonoBehaviour {
 	// Find all the game objects in the scene
 
 	public static void LoadLevelWorkaround(string level){
-		Transform[] allTransforms  = FindObjectsOfType(typeof(Transform)) as Transform[];
+		Transform[] allTransforms  = FindObjectsByType<Transform>(FindObjectsSortMode.None);
 	// Cycle through them and delete everything that isn't set to Persist
 	
 		for(int i= 0; i < allTransforms.Length; i++)	{
@@ -23,6 +24,6 @@ public class WorkAround : MonoBehaviour {
 			}
 		}
 		// Additively load the specified level
-		Application.LoadLevelAdditive(level);
+		SceneManager.LoadScene(level, LoadSceneMode.Additive);
 	}
 }

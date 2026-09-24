@@ -25,10 +25,14 @@ public class PlayerController : MonoBehaviour {
 		this.InitialPosition = new Vector3 (0f, 0f, -4f);
 		this.transform.position = InitialPosition;
 		// new spring joint
-		springJoint.spring = spring;
-		springJoint.damper = damper;
-		springJoint.maxDistance = distance;
-		springJoint.connectedBody = hit.rigidbody;
+		if (springJoint != null)
+		{
+			springJoint.spring = spring;
+			springJoint.damper = damper;
+			springJoint.maxDistance = distance;
+			if (hit.rigidbody != null)
+				springJoint.connectedBody = hit.rigidbody;
+		}
         // ignoring collision with Walls and Players else it bounces while we touch the wall
         Physics.IgnoreLayerCollision(8, 9);
 	}
@@ -67,8 +71,7 @@ public class PlayerController : MonoBehaviour {
 			GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 			IsPuckHit=false;
 		}
-		speed = (this.transform.GetComponent<Rigidbody>().position - this.Last_Position).magnitude / Time.deltaTime;
-		this.Last_Position = this.transform.GetComponent<Rigidbody>().position;
+		SampleMotion();
 	}
 	
 	// to Add force to puck and giving more momentum for the puddle to simulate close to real life situation..
@@ -98,6 +101,8 @@ public class PlayerController : MonoBehaviour {
 		}
 	}
 
+	public Vector3 PlanarVelocity { get; private set; }
+
 	public float Speed
 	{
 		get
@@ -108,6 +113,16 @@ public class PlayerController : MonoBehaviour {
 		{
 			speed =value;
 		}
+	}
+
+	protected void SampleMotion()
+	{
+		Vector3 now = transform.position;
+		float step = Time.fixedDeltaTime > 0f ? Time.fixedDeltaTime : Time.deltaTime;
+		PlanarVelocity = (now - Last_Position) / step;
+		PlanarVelocity.y = 0f;
+		speed = PlanarVelocity.magnitude;
+		Last_Position = now;
 	}
 }
 
