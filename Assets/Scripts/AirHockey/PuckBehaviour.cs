@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -70,6 +71,7 @@ public class PuckBehaviour : MonoBehaviour {
                     StartCoroutine(PlayAudio(Aihit));
                     this.AIPlayerCourt = false;
                 }
+                ApplyPaddleHit(col, players);
 			}
 		if(col.collider.tag=="AIPlayer"){
 				StartCoroutine(PlayAudio(Aihit));
@@ -80,6 +82,7 @@ public class PuckBehaviour : MonoBehaviour {
             if(!this.AIPlayerCourt)
                 this.AIPlayerHits += 1;
                 this.AIPlayerCourt = true;
+                ApplyPaddleHit(col, players);
 			}
 			
 		//Updating the  scores of  individual players here.
@@ -101,10 +104,42 @@ public class PuckBehaviour : MonoBehaviour {
 			this.PuckReSpawn();
 				}
          if (col.collider.gameObject.layer == LayerMask.NameToLayer("Walls")
-             && Properties.GameType == Properties.Modes.PlayforMoney){
-            Properties.NoofWalls += 1;
+             || col.collider.gameObject.name.IndexOf("Wall", System.StringComparison.OrdinalIgnoreCase) >= 0)
+         {
+            ApplyRailHit(col);
+            if (Properties.GameType == Properties.Modes.PlayforMoney)
+                Properties.NoofWalls += 1;
          }
 	}
+
+    void OnCollisionStay(Collision col)
+    {
+        if (col.collider.CompareTag("Player") || col.collider.CompareTag("AIPlayer"))
+            return;
+        if (col.collider.gameObject.layer == LayerMask.NameToLayer("Walls")
+            || col.collider.gameObject.name.IndexOf("Wall", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            ApplyRailHit(col);
+    }
+
+    void ApplyPaddleHit(Collision col, PlayerController paddle)
+    {
+        if (paddle == null || col.contactCount == 0)
+            return;
+        var body = GetComponent<Rigidbody>();
+        Vector3 normal = col.GetContact(0).normal;
+        body.linearVelocity = AirHockeyPhysics.ResolvePaddle(body.linearVelocity, paddle.PlanarVelocity, normal);
+    }
+
+    void ApplyRailHit(Collision col)
+    {
+        if (col.contactCount == 0)
+            return;
+        var body = GetComponent<Rigidbody>();
+        Vector3 velocity = body.linearVelocity;
+        for (int i = 0; i < col.contactCount; i++)
+            velocity = AirHockeyPhysics.ResolveRail(velocity, col.GetContact(i).normal);
+        body.linearVelocity = velocity;
+    }
 
     void OnTriggerEnter(Collider col){
         if(Properties.GameType==Properties.Modes.PlayforMoney){
@@ -121,26 +156,19 @@ public class PuckBehaviour : MonoBehaviour {
     }
 
 	void FixedUpdate(){
-		if (Collided && players!=null) {
-			if(players.Speed<Player_minspeed)
-                players.Speed = Player_minspeed;
-			this.GetComponent<Rigidbody>().AddForce (_ContactPoint * players.Speed * 2f,ForceMode.Force);
-			Collided=false;
-		}
-		// Take out the Hard Coded stuff.
-		if (this.GetComponent<Rigidbody>().linearVelocity.z > MaxSpeed)
-						this.GetComponent<Rigidbody>().linearVelocity = new Vector3(this.GetComponent<Rigidbody>().linearVelocity.x,
-			                                      this.GetComponent<Rigidbody>().linearVelocity.y,
-			                                      MaxSpeed);
-		if(this.GetComponent<Rigidbody>().linearVelocity.z < -MaxSpeed)
-						this.GetComponent<Rigidbody>().linearVelocity = new Vector3(this.GetComponent<Rigidbody>().linearVelocity.x,
-			                                      this.GetComponent<Rigidbody>().linearVelocity.y,
-			                                      -MaxSpeed);
+        var body = GetComponent<Rigidbody>();
+        Vector3 velocity = AirHockeyPhysics.ClampPlanar(body.linearVelocity);
+        if (velocity.magnitude > MaxSpeed && MaxSpeed > 0f)
+            velocity = velocity.normalized * MaxSpeed;
+        body.linearVelocity = velocity;
+        Collided = false;
 	}
 	
 	void PuckReSpawn(){
-		this.transform.position = Vector3.zero;
-		this.GetComponent<Rigidbody>().linearVelocity = Vector2.zero;
+        var body = GetComponent<Rigidbody>();
+		body.position = new Vector3(0f, body.position.y, 0f);
+		body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
 	}
     public void Reset(){
         this.PuckReSpawn();
@@ -171,8 +199,14 @@ public class PuckBehaviour : MonoBehaviour {
         }
     }
     public void RandomPuckReSpawn(){
-        this.transform.position = PuckPositions[Random.Range(5, 6)];
-        this.GetComponent<Rigidbody>().linearVelocity = Vector2.zero;
+        if (PuckPositions == null || PuckPositions.Length == 0)
+            return;
+        var body = GetComponent<Rigidbody>();
+        Vector3 spot = PuckPositions[Random.Range(0, PuckPositions.Length)];
+        spot.y = body.position.y;
+        body.position = spot;
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
     }
 }
 

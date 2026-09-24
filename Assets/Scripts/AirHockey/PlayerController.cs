@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour {
 	public Vector3 AiPlayerHitPoint;
 	public Vector3 Last_Position=Vector3.zero;
 	public float speed=0;
+	public Vector3 PlanarVelocity;
 	public SpringJoint springJoint;
 	public float spring=1500;
 	public float damper=3;
@@ -25,10 +26,15 @@ public class PlayerController : MonoBehaviour {
 		this.InitialPosition = new Vector3 (0f, 0f, -4f);
 		this.transform.position = InitialPosition;
 		// new spring joint
-		springJoint.spring = spring;
-		springJoint.damper = damper;
-		springJoint.maxDistance = distance;
-		springJoint.connectedBody = hit.rigidbody;
+		if (springJoint != null)
+		{
+			springJoint.spring = 0f;
+			springJoint.damper = 0f;
+			springJoint.connectedBody = null;
+		}
+		var body = GetComponent<Rigidbody>();
+		if (body != null)
+			AirHockeyPhysics.ConfigurePaddle(body);
         // ignoring collision with Walls and Players else it bounces while we touch the wall
         Physics.IgnoreLayerCollision(8, 9);
 	}
@@ -42,7 +48,8 @@ public class PlayerController : MonoBehaviour {
             var Mouse_World = new Vector3 (hit.point.x, 0, hit.point.z);
 			//springJoint.transform.position = hit.point;
 			//springJoint.transform.position=Mouse_World;
-			var Lock_Player = Vector3.Lerp (springJoint.transform.position, Mouse_World, Time.smoothDeltaTime*smooth);
+			Vector3 from = springJoint != null ? springJoint.transform.position : transform.position;
+			var Lock_Player = Vector3.Lerp (from, Mouse_World, Time.smoothDeltaTime*smooth);
 //			if(Lock_Player.x<-2.65f || Lock_Player.x>2.65f)
 //			{
 //				
@@ -53,22 +60,31 @@ public class PlayerController : MonoBehaviour {
 //			}
             Lock_Player.x = Mathf.Clamp (Lock_Player.x, -2.7f, 2.7f);
             Lock_Player.z=Mathf.Clamp(Lock_Player.z,-4.1f,-0.5f);
-            //this.transform.position = Lock_Player;
-			springJoint.transform.position=Lock_Player;
+			desiredPosition = Lock_Player;
+			hasDesiredPosition = true;
         }
 	}
+
+	private Vector3 desiredPosition;
+	private bool hasDesiredPosition;
 	
 	// for physics update!
 
 	void FixedUpdate()
 	{
-		if (IsPuckHit == true || GetComponent<Rigidbody>().linearVelocity!=Vector3.zero ) 
+		var body = GetComponent<Rigidbody>();
+		if (hasDesiredPosition && body != null)
 		{
-			GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
-			IsPuckHit=false;
+			const float maxMalletSpeed = 12f;
+			Vector3 next = Vector3.MoveTowards(body.position, desiredPosition, maxMalletSpeed * Time.fixedDeltaTime);
+			next.y = body.position.y;
+			PlanarVelocity = (next - body.position) / Time.fixedDeltaTime;
+			PlanarVelocity.y = 0f;
+			body.MovePosition(next);
 		}
-		speed = (this.transform.GetComponent<Rigidbody>().position - this.Last_Position).magnitude / Time.deltaTime;
-		this.Last_Position = this.transform.GetComponent<Rigidbody>().position;
+		IsPuckHit = false;
+		speed = PlanarVelocity.magnitude;
+		this.Last_Position = body != null ? body.position : transform.position;
 	}
 	
 	// to Add force to puck and giving more momentum for the puddle to simulate close to real life situation..

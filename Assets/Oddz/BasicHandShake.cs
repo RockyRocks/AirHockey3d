@@ -88,10 +88,10 @@ public class BasicHandShake : MonoBehaviour
             {
                 //foreach (string script in gamePlayScript_Collection)
                 //{
-                //    Application.ExternalEval(script);
+                //    LegacyWebPlayer.Eval(script);
                 //    Debug.Log("i am explicitly calling GamePlayEvent here:" + script);
                 //}
-                Application.ExternalEval(GamePlayEvent_script);
+                LegacyWebPlayer.Eval(GamePlayEvent_script);
                 GamePlayReveal_flag = false;
                 this.GamePlayEvent_script = null;
                 this.gamePlayScript_Collection.Clear();
@@ -126,7 +126,7 @@ public class BasicHandShake : MonoBehaviour
         if (IsCASread)
             return true;
 		if(ApiValidated)
-        Application.ExternalEval(
+        LegacyWebPlayer.Eval(
             "unity.getUnity().SendMessage('Oddz', 'ReceiveURL', window.location.href);");
 
         if (CASUrltoParse != null && !IsCASread)
@@ -168,7 +168,7 @@ public class BasicHandShake : MonoBehaviour
         {
             var javaScript =
                 "owc.Oddz.session({accessToken: '" + CAS + "',apiKey: '" + apiKey + "'},function(data) { unity.getUnity().SendMessage('Oddz', 'OnGetSession_WEB', JSON.stringify(data) )},function(error){unity.getUnity().SendMessage('Oddz', 'OnFailSession_WEB', JSON.stringify(error))});";
-            Application.ExternalEval(javaScript);    
+            LegacyWebPlayer.Eval(javaScript);    
             Debug.Log(javaScript);
             SessionRequested = true;
         }
@@ -201,7 +201,7 @@ public class BasicHandShake : MonoBehaviour
         var javaScript = 
             string.Format(@"owc.Oddz.getAccount({{apiKey: '{0}', sessionId: '{1}'}}, function(data) {{unity.getUnity().SendMessage('Oddz', 'OnGetAccount_WEB', JSON.stringify(data));}},function(error) {{console.log( 'GetAccount error: '+error );}});",
                                                                 session.apiKey,session.sessionKey);
-        Application.ExternalEval(javaScript);
+        LegacyWebPlayer.Eval(javaScript);
         Debug.Log(javaScript);
     }
 
@@ -220,7 +220,7 @@ public class BasicHandShake : MonoBehaviour
 			var javaScript =
                 string.Format(@"owc.Oddz.deleteSession({{apiKey:'{0}',sessionId:'{1}'}},function(data){{unity.getUnity().SendMessage('Oddz', 'OnDeleteSession', 'data');}},function(error){{console.log('delete Session: '+ error);}});",
                 apiKey, Properties.SessionKey);
-			Application.ExternalEval (javaScript);
+			LegacyWebPlayer.Eval(javaScript);
 			Debug.Log (javaScript);
 		}
     }
@@ -260,7 +260,7 @@ public class BasicHandShake : MonoBehaviour
                                                               apiKey);
             Debug.Log(javaScript);
 
-            Application.ExternalEval(javaScript);
+            LegacyWebPlayer.Eval(javaScript);
 
             Properties.S_GoingtoPlay = false;
         }
@@ -311,7 +311,7 @@ public class BasicHandShake : MonoBehaviour
                 // Adding the collection of the gameplay events into the list so that we can reveal them all once the player wins.
                 //gamePlayScript_Collection.Add(javaScript);
 
-                //Application.ExternalEval(javaScript);
+                //LegacyWebPlayer.Eval(javaScript);
                // Debug.Log(javaScript);
                // Debug.Log(javaScript_events);
 			}
@@ -602,7 +602,7 @@ public class BasicHandShake : MonoBehaviour
 
     IEnumerator CheckforCAS()
     {
-        Application.ExternalEval(
+        LegacyWebPlayer.Eval(
             "u.getUnity().SendMessage('testing', 'ReceiveURL', window.location.href);");
         url = new WWW("https://sb.oddz.com/cas/login?service=http://182.18.176.6/webbuild.html");
         yield return url;
