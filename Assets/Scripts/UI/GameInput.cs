@@ -63,11 +63,12 @@ public class GameInput : MonoBehaviour
 
 		if (!Properties.S_CantakeInputs) 
 		{
-			if (m_IsPuckSelected && m_LineCrossed && easyslidehack) 
+			if (m_IsPuckSelected && m_LineCrossed && easyslidehack && Puck.Get() != null) 
 			{
 				Debug.Log ("releasing the puck");
 
-				Vector3 m_MouseEndPos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Depth);
+				Vector2 pointer = Input.touchCount > 0 ? (Vector2)Input.GetTouch(0).position : (Vector2)Input.mousePosition;
+				Vector3 m_MouseEndPos = new Vector3(pointer.x, pointer.y, Depth);
 				Vector3 force = (m_MouseEndPos - EasySlide);
 				var Zforce = force.magnitude/Time.deltaTime;
 				force = new Vector3(-force.x,0,-Zforce);
@@ -88,7 +89,7 @@ public class GameInput : MonoBehaviour
 		if(Puck.Get()!=null)
 		if((Puck.Get().transform.position.x>0.15f || Puck.Get().transform.position.x<-0.15f) 
 		   && m_LineCrossed==false
-           &&Input.GetMouseButtonUp(0)
+           && PointerInput.WasReleased()
 		   &&Puck.Get().transform.position.z<1.90f)
 		{
 			StartCoroutine("Follow_camera");
@@ -102,17 +103,19 @@ public class GameInput : MonoBehaviour
 	//private Vector3 Previous_position;
 	void CheckInputs()
 	{
-		if (Input.GetMouseButton (0)) 
+		Vector2 screen;
+		bool pointerHeld;
+		if (PointerInput.TryGet(out screen, out pointerHeld) && PointerInput.IsPressed() && Camera.main != null && Puck.Get() != null)
 		{
 			//None of the UI Elements are selected.
 			//So, check if the Puck is selected.
-			ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+			ray = Camera.main.ScreenPointToRay (screen);
 			if (Physics.Raycast (ray, out hit, Mathf.Infinity)) 
 			{
 				Debug.DrawLine (Puck.Get ().GetComponent<Rigidbody>().position, hit.point, Color.cyan);
 				if (hit.collider.GetComponent<Collider>().name.Contains ("Puck")) 
 				{
-					m_MouseStartPos = new Vector3 (Input.mousePosition.x, Input.mousePosition.y, Depth);
+					m_MouseStartPos = new Vector3 (screen.x, screen.y, Depth);
 					if(!easyslidehack)
 					{
 						EasySlide= m_MouseStartPos;
@@ -128,9 +131,9 @@ public class GameInput : MonoBehaviour
 				}
 			}
 		} 
-		else if (Input.GetMouseButtonUp (0)) {
+		else if (PointerInput.WasReleased()) {
 						this.Pucklaunch ();
-				} 
+				}
 
 	}
 	bool easyslidehack=false;
@@ -138,7 +141,8 @@ public class GameInput : MonoBehaviour
 	{
 		if(m_IsPuckSelected == true)
 		{
-			Vector3 m_MouseEndPos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, Depth);
+			Vector2 release = Input.touchCount > 0 ? (Vector2)Input.GetTouch(0).position : (Vector2)Input.mousePosition;
+			Vector3 m_MouseEndPos = new Vector3(release.x, release.y, Depth);
 			Vector3 force = (m_MouseEndPos - m_MouseStartPos);
 			var Zforce = force.magnitude/Time.deltaTime;
 			force = new Vector3(-force.x,0,-Zforce);

@@ -14,6 +14,10 @@ internal static class Program
 		SlowMalletStillSeparatesThePuck();
 		AirDragStaysOnTheTableAndBarelySlowsThePuck();
 		PlanarSpeedCapKeepsDirection();
+		StalePaddleCommandIsIgnored();
+		PaddleCannotCrossTheCenterLine();
+		PaddleCannotTeleportThroughThePuck();
+		SnapshotPlaybackFillsAGapAndDoesNotRunAhead();
 
 		if (failures > 0)
 		{
@@ -93,6 +97,54 @@ internal static class Program
 		Near(capped.Length(), 8f, 0.02f, "speed cap");
 		Near(capped.Y, 0f, 0.001f, "cap stays planar");
 		Near(capped.X / capped.Z, 6f / 8f, 0.02f, "cap keeps the shot direction");
+	}
+
+	static void StalePaddleCommandIsIgnored()
+	{
+		CommandIngress ingress = new CommandIngress();
+		Check(ingress.Push(new PaddleCommand { Sequence = 2, X = 1f, Z = -2f }), "first command is accepted");
+		Check(!ingress.Push(new PaddleCommand { Sequence = 1, X = 9f, Z = 9f }), "older command is dropped");
+		Near(ingress.X, 1f, 0.001f, "stale command does not move the mallet");
+		Check(ingress.Push(new PaddleCommand { Sequence = 2, X = 0.5f, Z = -1f }), "same tick refresh is kept");
+		Near(ingress.X, 0.5f, 0.001f, "newest sample at this sequence wins");
+	}
+
+	static void PaddleCannotCrossTheCenterLine()
+	{
+		float x = 4f;
+		float z = 2f;
+		TableRules.ClampPaddle(0, ref x, ref z);
+		Near(x, TableRules.MaxX, 0.001f, "bottom mallet stays on the table width");
+		Near(z, TableRules.BottomMaxZ, 0.001f, "bottom mallet stays in its own half");
+		x = -4f;
+		z = -2f;
+		TableRules.ClampPaddle(1, ref x, ref z);
+		Near(z, TableRules.TopMinZ, 0.001f, "top mallet stays in its own half");
+	}
+
+	static void PaddleCannotTeleportThroughThePuck()
+	{
+		float x;
+		float z;
+		TableRules.StepTowards(0f, -4f, 0f, -0.5f, 0.02f, out x, out z);
+		float moved = MathF.Abs(z - (-4f));
+		Near(moved, TableRules.MaxPaddleSpeed * 0.02f, 0.001f, "mallet travel is limited to one server tick");
+		Check(z < -0.5f, "a late burst cannot jump the mallet onto the puck");
+	}
+
+	static void SnapshotPlaybackFillsAGapAndDoesNotRunAhead()
+	{
+		SnapshotBuffer buffer = new SnapshotBuffer();
+		buffer.Push(new NetSnapshot { Tick = 1, Time = 0f, PuckX = 0f, PuckZ = 0f, PuckVx = 2f, PuckVz = 0f });
+		buffer.Push(new NetSnapshot { Tick = 1, Time = 1f, PuckX = 9f, PuckZ = 9f });
+		Check(buffer.Count == 1, "duplicate tick is ignored");
+		buffer.Push(new NetSnapshot { Tick = 3, Time = 0.1f, PuckX = 2f, PuckZ = 0f, PuckVx = 2f, PuckVz = 0f });
+		NetSnapshot mid;
+		Check(buffer.Sample(0.05f, 0.02f, out mid), "gap sample exists");
+		Near(mid.PuckX, 1f, 0.001f, "playback sits halfway between server snapshots");
+		NetSnapshot ahead;
+		Check(buffer.Sample(1f, 0.02f, out ahead), "future sample exists");
+		Near(ahead.PuckX, 2f + 2f * 0.02f, 0.001f, "playback extrapolates at most one short tick");
 	}
 
 	static void Near(float actual, float expected, float tolerance, string label)

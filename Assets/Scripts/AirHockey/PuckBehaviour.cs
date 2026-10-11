@@ -106,7 +106,8 @@ public class PuckBehaviour : MonoBehaviour {
 			//GameObject.FindGameObjectWithTag("PlayerScore").guiText.text=" "+ScoreTopValue;
 			Properties.HumanplayerGoals = ScoreTopValue;
 			this.GoalScored=true;
-            StartCoroutine(PlayAudio(GoalCollection_audio[Random.Range(0,3)]));
+            if (GoalCollection_audio != null && GoalCollection_audio.Length > 0)
+                StartCoroutine(PlayAudio(GoalCollection_audio[Random.Range(0, GoalCollection_audio.Length)]));
 			this.PuckReSpawn();
 				}
          if (col.collider.gameObject.layer == LayerMask.NameToLayer("Walls")
@@ -283,9 +284,14 @@ public class PuckBehaviour : MonoBehaviour {
         yield return transformPosition;
     }
 	IEnumerator PlayAudio(AudioClip audioClip){
-				this.GetComponent<AudioSource>().volume = Properties.sfxVolume;
-				this.GetComponent<AudioSource>().PlayOneShot (audioClip);
-				yield return new WaitForSeconds (audioClip.length);
+				if (audioClip == null)
+					yield break;
+				AudioSource source = GetComponent<AudioSource>();
+				if (source == null)
+					yield break;
+				source.volume = Properties.sfxVolume;
+				source.PlayOneShot(audioClip);
+				yield return new WaitForSeconds(audioClip.length);
 		}
     public void challengePositions(string challengeName){
         switch (challengeName){
