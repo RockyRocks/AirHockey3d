@@ -19,6 +19,7 @@ public class AuthoritativeMatch : MonoBehaviour
 	public static MatchRole RequestedRole = MatchRole.Host;
 	public static bool BottomSlotIsRemote;
 	public static bool TopSlotIsRemote;
+	public static bool AiControlsTop = true;
 
 	public MatchRole Role;
 	public float interpolationDelay = 0.05f;
@@ -45,7 +46,26 @@ public class AuthoritativeMatch : MonoBehaviour
 		if (slot == 0)
 			Instance.bottomIngress.Push(command);
 		else
+		{
+			if (AiControlsTop)
+				Instance.topIngress.Reset();
+			AiControlsTop = false;
 			Instance.topIngress.Push(command);
+		}
+	}
+
+	public static void ClearTopPaddle()
+	{
+		if (Instance != null)
+			Instance.topIngress.Reset();
+	}
+
+	public static void SubmitAiPaddle(PaddleCommand command)
+	{
+		if (Instance == null || !AiControlsTop)
+			return;
+		TopSlotIsRemote = true;
+		Instance.topIngress.Push(command);
 	}
 
 	public void SubmitLocalPaddle(float x, float z)
@@ -95,6 +115,8 @@ public class AuthoritativeMatch : MonoBehaviour
 		BindTable();
 		if (Role == MatchRole.Client)
 			SetPuckPresentationOnly(true);
+		else if (AiControlsTop)
+			gameObject.AddComponent<ServerAiDriver>();
 		StartCoroutine(CaptureAfterPhysics());
 	}
 
@@ -181,7 +203,8 @@ public class AuthoritativeMatch : MonoBehaviour
 		TableRules.ClampPaddle(slot, ref x, ref z);
 		float nextX;
 		float nextZ;
-		TableRules.StepTowards(paddle.position.x, paddle.position.z, x, z, Time.fixedDeltaTime, out nextX, out nextZ);
+		float speed = TableRules.MaxPaddleSpeed * (ingress.SpeedScale <= 0f ? 1f : ingress.SpeedScale);
+		TableRules.StepTowards(paddle.position.x, paddle.position.z, x, z, Time.fixedDeltaTime, speed, out nextX, out nextZ);
 		Vector3 position = paddle.position;
 		position.x = nextX;
 		position.y = 0f;
