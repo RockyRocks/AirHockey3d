@@ -69,6 +69,7 @@ public static class GraphicsTierSettings
 		}
 
 		SetHeavyEffects(tier == GraphicsTier.High && !Application.isMobilePlatform);
+		TablePresentation.Apply(tier);
 	}
 
 	public static void SetHeavyEffects(bool enabled)

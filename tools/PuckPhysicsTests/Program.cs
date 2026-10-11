@@ -23,6 +23,10 @@ internal static class Program
 		AiTargetStaysInItsOwnHalf();
 		HalfSpeedMalletCoversHalfTheDistance();
 		MissingSpeedScaleUsesFullSpeed();
+		HighDensityPhoneGetsLargerType();
+		LargeTabletDoesNotShrinkTheInterface();
+		HighTierStaysSharpOnABigScreen();
+		LowTierDropsPixelsOnALargeDisplay();
 
 		if (failures > 0)
 		{
@@ -217,6 +221,35 @@ internal static class Program
 	{
 		ai.Observe(0f, puckX, puckZ, puckVx, puckVz);
 		return ai.Decide(1f, seed);
+	}
+
+	static void HighDensityPhoneGetsLargerType()
+	{
+		float phone = DisplayScale.UiScale(480f, 2400f, 1080f);
+		float desktop = DisplayScale.UiScale(96f, 1920f, 1080f);
+		Check(phone > desktop, "a dense phone scales the interface above a low-dpi desktop");
+		Check(DisplayScale.FontSize(phone, 18f) >= 28, "phone body text stays large enough to read");
+	}
+
+	static void LargeTabletDoesNotShrinkTheInterface()
+	{
+		float tablet = DisplayScale.UiScale(264f, 2732f, 2048f);
+		Check(tablet > 2f, "a large tablet grows the panel with the screen");
+		Check(tablet <= 3.2f, "tablet scale stays capped");
+		Check(DisplayScale.FontSize(tablet, 18f) <= 72, "type does not become unreadably huge");
+	}
+
+	static void HighTierStaysSharpOnABigScreen()
+	{
+		Near(DisplayScale.RenderScale(2, 1600f), 1f, 0.001f, "high tier renders the full screen");
+		Check(DisplayScale.Msaa(2, 1600f) == 4, "high tier smooths edges on a large screen");
+	}
+
+	static void LowTierDropsPixelsOnALargeDisplay()
+	{
+		Near(DisplayScale.RenderScale(0, 1600f), 0.5f, 0.001f, "low tier renders fewer pixels on a large screen");
+		Check(DisplayScale.Msaa(0, 1600f) == 0, "low tier skips multisampling");
+		Near(DisplayScale.RenderScale(1, 1920f), 0.8f, 0.001f, "medium tier eases off on a very tall display");
 	}
 
 	static void Near(float actual, float expected, float tolerance, string label)

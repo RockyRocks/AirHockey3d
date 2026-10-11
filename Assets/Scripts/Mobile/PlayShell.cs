@@ -59,28 +59,37 @@ public class PlayShell : MonoBehaviour
 		}
 	}
 
+	GUIStyle titleStyle;
+	GUIStyle bodyStyle;
+	GUIStyle buttonStyle;
+	float styledScale = -1f;
+
 	void OnGUI()
 	{
-		float scale = Mathf.Clamp(Screen.dpi <= 0f ? 1.5f : Screen.dpi / 160f, 1.15f, 2.4f);
-		float width = Mathf.Min(Screen.width - 24f, 420f * scale);
-		float x = (Screen.width - width) * 0.5f;
+		Rect safe = Screen.safeArea;
+		float scale = DisplayScale.UiScale(Screen.dpi, Screen.width, Screen.height);
+		EnsureStyles(scale);
+		float left = safe.xMin + 12f * scale;
+		float top = Screen.height - safe.yMax + 12f * scale;
+		float width = Mathf.Min(safe.width - 24f * scale, 460f * scale);
+		float x = safe.xMin + (safe.width - width) * 0.5f;
 
 		if (panel == Panel.Tutorial && !menuOpen)
 		{
-			DrawBanner(x, 16f, width, 72f * scale, CoachText(), scale);
-			if (GUI.Button(new Rect(x, 16f + 76f * scale, 120f * scale, 40f * scale), "Menu"))
+			DrawBanner(x, top, width, 88f * scale, CoachText(), scale);
+			if (GUI.Button(new Rect(x, top + 96f * scale, 140f * scale, 48f * scale), "Menu", buttonStyle))
 				menuOpen = true;
 			return;
 		}
 
 		if (!menuOpen)
 		{
-			if (GUI.Button(new Rect(16f, 16f, 120f * scale, 44f * scale), "Menu"))
+			if (GUI.Button(new Rect(left, top, 140f * scale, 52f * scale), "Menu", buttonStyle))
 				menuOpen = true;
 			return;
 		}
 
-		float y = 16f;
+		float y = top;
 		y = DrawBanner(x, y, width, 64f * scale, Title(), scale) + 8f;
 		if (panel == Panel.Welcome)
 		{
@@ -209,17 +218,45 @@ public class PlayShell : MonoBehaviour
 		return GraphicsTierSettings.Current == tier ? "[" + name + "]" : name;
 	}
 
-	static float DrawBanner(float x, float y, float width, float height, string text, float scale)
+	float DrawBanner(float x, float y, float width, float height, string text, float scale)
 	{
-		GUI.Box(new Rect(x, y, width, height), "");
-		GUI.Label(new Rect(x + 12f, y + 8f, width - 24f, height - 12f), text);
+		Color previous = GUI.backgroundColor;
+		GUI.backgroundColor = new Color(0.04f, 0.16f, 0.28f, 0.94f);
+		GUI.Box(new Rect(x, y, width, height), "", titleStyle);
+		GUI.backgroundColor = previous;
+		GUI.Label(new Rect(x + 16f * scale, y + 8f, width - 32f * scale, height - 12f), text, bodyStyle);
 		return y + height;
 	}
 
-	static float Button(float x, float y, float width, float height, string text, float scale, System.Action action)
+	float Button(float x, float y, float width, float height, string text, float scale, System.Action action)
 	{
-		if (GUI.Button(new Rect(x, y, width, height), text) && action != null)
+		Color previous = GUI.backgroundColor;
+		GUI.backgroundColor = new Color(0.0f, 0.55f, 0.78f, 1f);
+		bool pressed = GUI.Button(new Rect(x, y, width, height), text, buttonStyle);
+		GUI.backgroundColor = previous;
+		if (pressed && action != null)
 			action();
 		return y + height;
+	}
+
+	void EnsureStyles(float scale)
+	{
+		if (titleStyle != null && Mathf.Abs(styledScale - scale) < 0.01f)
+			return;
+		styledScale = scale;
+		int font = DisplayScale.FontSize(scale, 18f);
+		titleStyle = new GUIStyle(GUI.skin.box);
+		titleStyle.fontSize = font;
+		titleStyle.alignment = TextAnchor.MiddleLeft;
+		bodyStyle = new GUIStyle(GUI.skin.label);
+		bodyStyle.fontSize = font;
+		bodyStyle.wordWrap = true;
+		bodyStyle.alignment = TextAnchor.MiddleLeft;
+		bodyStyle.normal.textColor = new Color(0.93f, 0.98f, 1f);
+		buttonStyle = new GUIStyle(GUI.skin.button);
+		buttonStyle.fontSize = font;
+		buttonStyle.alignment = TextAnchor.MiddleCenter;
+		buttonStyle.normal.textColor = Color.white;
+		buttonStyle.hover.textColor = Color.white;
 	}
 }
