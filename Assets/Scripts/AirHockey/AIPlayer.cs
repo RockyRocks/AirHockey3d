@@ -20,7 +20,9 @@ public class AIPlayer : PlayerController {
 	// AI Player Initial Spawning Position
 		this.InitialPosition = new Vector3 (0f, 0f, 3.6f);
 		this.transform.position = InitialPosition;
-		Puck = GameObject.FindGameObjectWithTag ("Puck").GetComponent<PuckBehaviour> ();
+		GameObject puckObject = GameObject.FindGameObjectWithTag("Puck");
+		if (puckObject != null)
+			Puck = puckObject.GetComponent<PuckBehaviour>();
 	}
 	// Update is called once per frame
 	void Update () {
@@ -31,6 +33,8 @@ public class AIPlayer : PlayerController {
 		this.transform.position = pos;
 
 		AiPlayerPosition = this.transform.position;
+		if (Puck == null)
+			return;
 		PuckPosition = Puck.transform.position;
 		if (Puck.transform.position == Vector3.zero) {
 			this.Reset();
@@ -38,6 +42,10 @@ public class AIPlayer : PlayerController {
 		//Physics.IgnoreLayerCollision(8,9);
 	}
 	void FixedUpdate (){
+        if (AuthoritativeMatch.TopSlotIsRemote)
+            return;
+        if (Puck == null)
+            return;
         if (Properties.SelectedChallenge == "Penalty Shot")
             return;
 

@@ -38,27 +38,26 @@ public class PlayerController : MonoBehaviour {
 	}
 	// Update is called once per frame
 	void Update () {
-		// Need to check for physics updates in FixedUpdate. Have to refer the API
-		// this is to move the Player object using cursor/touch
-		var ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+		if (AuthoritativeMatch.BottomSlotIsRemote)
+			return;
+		if (Camera.main == null)
+			return;
+		Vector2 screen;
+		bool held;
+		if (!PointerInput.TryGet(out screen, out held) || !held)
+			return;
+		Ray ray = Camera.main.ScreenPointToRay(screen);
         if (Physics.Raycast(ray,out hit))
         {
-            var Mouse_World = new Vector3 (hit.point.x, 0, hit.point.z);
-			//springJoint.transform.position = hit.point;
-			//springJoint.transform.position=Mouse_World;
-			var Lock_Player = Vector3.Lerp (springJoint.transform.position, Mouse_World, Time.smoothDeltaTime*smooth);
-//			if(Lock_Player.x<-2.65f || Lock_Player.x>2.65f)
-//			{
-//				
-//			}   
-//			if(Lock_Player.z<-4.05f || Lock_Player.z < -0.47f)
-//			{
-//
-//			}
-            Lock_Player.x = Mathf.Clamp (Lock_Player.x, -2.7f, 2.7f);
-            Lock_Player.z=Mathf.Clamp(Lock_Player.z,-4.1f,-0.5f);
-            //this.transform.position = Lock_Player;
-			springJoint.transform.position=Lock_Player;
+            Vector3 pointerWorld = new Vector3(hit.point.x, 0f, hit.point.z);
+			float x = pointerWorld.x;
+			float z = pointerWorld.z;
+			TableRules.ClampPaddle(0, ref x, ref z);
+			Vector3 desired = new Vector3(x, 0f, z);
+			Transform driven = springJoint != null ? springJoint.transform : transform;
+			driven.position = Vector3.Lerp(driven.position, desired, Time.smoothDeltaTime * smooth);
+			if (AuthoritativeMatch.Instance != null)
+				AuthoritativeMatch.Instance.SubmitLocalPaddle(driven.position.x, driven.position.z);
         }
 	}
 	
