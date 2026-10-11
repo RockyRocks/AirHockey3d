@@ -65,10 +65,15 @@ public class GameScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		GetComponent<AudioSource>().Stop();
+		AudioSource source = GetComponent<AudioSource>();
+		if (source != null)
+			source.Stop();
 
-		okButtonRect = new Rect (360, 335, buttonBG.width, buttonBG.height);
-		cancelButtonRect = new Rect (530, 335, buttonBG.width, buttonBG.height);
+		if (buttonBG != null)
+		{
+			okButtonRect = new Rect (360, 335, buttonBG.width, buttonBG.height);
+			cancelButtonRect = new Rect (530, 335, buttonBG.width, buttonBG.height);
+		}
 
 		script = this;
         puck = GameObject.FindGameObjectWithTag("Puck").GetComponent<PuckBehaviour>();
