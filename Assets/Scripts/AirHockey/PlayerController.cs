@@ -19,6 +19,8 @@ public class PlayerController : MonoBehaviour {
 	public float spring=1500;
 	public float damper=3;
 	public float distance=0.2f;
+	Vector3 desiredPaddle;
+	bool hasDesiredPaddle;
 	// Use this for initialization.
 	void Start()
 	{
@@ -53,11 +55,8 @@ public class PlayerController : MonoBehaviour {
 			float x = pointerWorld.x;
 			float z = pointerWorld.z;
 			TableRules.ClampPaddle(0, ref x, ref z);
-			Vector3 desired = new Vector3(x, 0f, z);
-			Transform driven = springJoint != null ? springJoint.transform : transform;
-			driven.position = Vector3.Lerp(driven.position, desired, Time.smoothDeltaTime * smooth);
-			if (AuthoritativeMatch.Instance != null)
-				AuthoritativeMatch.Instance.SubmitLocalPaddle(driven.position.x, driven.position.z);
+			desiredPaddle = new Vector3(x, 0f, z);
+			hasDesiredPaddle = true;
         }
 	}
 	
@@ -69,6 +68,19 @@ public class PlayerController : MonoBehaviour {
 		{
 			GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
 			IsPuckHit=false;
+		}
+		if (hasDesiredPaddle)
+		{
+			Transform driven = springJoint != null ? springJoint.transform : transform;
+			float nextX;
+			float nextZ;
+			TableRules.StepTowards(driven.position.x, driven.position.z, desiredPaddle.x, desiredPaddle.z, Time.fixedDeltaTime, out nextX, out nextZ);
+			Vector3 position = driven.position;
+			position.x = nextX;
+			position.z = nextZ;
+			driven.position = position;
+			if (AuthoritativeMatch.Instance != null)
+				AuthoritativeMatch.Instance.SubmitLocalPaddle(nextX, nextZ);
 		}
 		SampleMotion();
 	}

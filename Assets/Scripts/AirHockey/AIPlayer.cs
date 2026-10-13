@@ -26,6 +26,8 @@ public class AIPlayer : PlayerController {
 	}
 	// Update is called once per frame
 	void Update () {
+		if (AuthoritativeMatch.TopSlotIsRemote)
+			return;
 		// Lock the AI player to his boundaries 
 		var pos = this.transform.position;
 		pos.x = Mathf.Clamp(pos.x , -2.7f, 2.7f);

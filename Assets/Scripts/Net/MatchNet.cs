@@ -5,6 +5,7 @@ public struct PaddleCommand
 	public int Sequence;
 	public float X;
 	public float Z;
+	public float SpeedScale;
 }
 
 public struct NetSnapshot
@@ -32,7 +33,15 @@ public sealed class CommandIngress
 	public int LastSequence = -1;
 	public float X;
 	public float Z;
+	public float SpeedScale = 1f;
 	public bool Has;
+
+	public void Reset()
+	{
+		LastSequence = -1;
+		Has = false;
+		SpeedScale = 1f;
+	}
 
 	public bool Push(PaddleCommand command)
 	{
@@ -41,6 +50,7 @@ public sealed class CommandIngress
 		LastSequence = command.Sequence;
 		X = command.X;
 		Z = command.Z;
+		SpeedScale = command.SpeedScale <= 0f ? 1f : command.SpeedScale;
 		Has = true;
 		return true;
 	}
@@ -72,10 +82,15 @@ public static class TableRules
 
 	public static void StepTowards(float fromX, float fromZ, float toX, float toZ, float deltaTime, out float x, out float z)
 	{
+		StepTowards(fromX, fromZ, toX, toZ, deltaTime, MaxPaddleSpeed, out x, out z);
+	}
+
+	public static void StepTowards(float fromX, float fromZ, float toX, float toZ, float deltaTime, float speed, out float x, out float z)
+	{
 		float dx = toX - fromX;
 		float dz = toZ - fromZ;
 		float distance = (float)Math.Sqrt(dx * dx + dz * dz);
-		float budget = MaxPaddleSpeed * deltaTime;
+		float budget = speed * deltaTime;
 		if (distance <= budget || distance <= 0.00001f)
 		{
 			x = toX;
