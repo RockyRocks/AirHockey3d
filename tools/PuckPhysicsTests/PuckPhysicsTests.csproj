@@ -9,5 +9,6 @@
     <Compile Include="..\..\Assets\Scripts\AirHockey\PuckCollisionMath.cs" />
     <Compile Include="..\..\Assets\Scripts\Net\MatchNet.cs" />
     <Compile Include="..\..\Assets\Scripts\Net\AiOpponent.cs" />
+    <Compile Include="..\..\Assets\Scripts\Presentation\DisplayScale.cs" />
   </ItemGroup>
 </Project>
