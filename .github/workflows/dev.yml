@@ -1,0 +1,77 @@
+name: Development
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - 'cursor/**'
+  workflow_dispatch:
+
+concurrency:
+  group: dev-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rules:
+    name: Simulation checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Run puck, AI, and display checks
+        run: dotnet run --project tools/PuckPhysicsTests/PuckPhysicsTests.csproj
+
+  license:
+    name: Unity license
+    runs-on: ubuntu-latest
+    outputs:
+      present: ${{ steps.check.outputs.present }}
+    steps:
+      - id: check
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          if [ -n "$UNITY_LICENSE" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "UNITY_LICENSE is not set. Development player builds are skipped."
+          fi
+
+  android:
+    name: Android development build
+    needs: [rules, license]
+    if: needs.license.outputs.present == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: jlumbroso/free-disk-space@v1.3.1
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-dev-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json', 'Packages/packages-lock.json') }}
+          restore-keys: |
+            Library-Android-dev-
+            Library-Android-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          androidExportType: androidPackage
+          versioning: Semantic
+          customParameters: -devBuild
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-dev
+          path: build/Android
+          if-no-files-found: error
+          retention-days: 7

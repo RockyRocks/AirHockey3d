@@ -1,0 +1,144 @@
+name: Production
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+concurrency:
+  group: prod-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  rules:
+    name: Simulation checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Run puck, AI, and display checks
+        run: dotnet run --project tools/PuckPhysicsTests/PuckPhysicsTests.csproj
+
+  license:
+    name: Release secrets
+    runs-on: ubuntu-latest
+    outputs:
+      unity: ${{ steps.check.outputs.unity }}
+      android: ${{ steps.check.outputs.android }}
+    steps:
+      - id: check
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          ANDROID_KEYALIAS_NAME: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          ANDROID_KEYALIAS_PASS: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+        run: |
+          unity=true
+          android=true
+          if [ -z "$UNITY_LICENSE" ]; then
+            echo "Set UNITY_LICENSE, UNITY_EMAIL, and UNITY_PASSWORD before a production build."
+            unity=false
+          fi
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASS" ] || [ -z "$ANDROID_KEYALIAS_NAME" ] || [ -z "$ANDROID_KEYALIAS_PASS" ]; then
+            echo "Set ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASS, ANDROID_KEYALIAS_NAME, and ANDROID_KEYALIAS_PASS."
+            android=false
+          fi
+          echo "unity=$unity" >> "$GITHUB_OUTPUT"
+          echo "android=$android" >> "$GITHUB_OUTPUT"
+          if [ "$unity" != "true" ] || [ "$android" != "true" ]; then
+            exit 1
+          fi
+
+  android:
+    name: Android release bundle
+    needs: [rules, license]
+    if: needs.license.outputs.unity == 'true' && needs.license.outputs.android == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: jlumbroso/free-disk-space@v1.3.1
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-Android-prod-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json', 'Packages/packages-lock.json') }}
+          restore-keys: |
+            Library-Android-prod-
+            Library-Android-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          androidExportType: androidAppBundle
+          androidKeystoreName: user.keystore
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+          versioning: Tag
+          customParameters: -prodBuild
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: build/Android
+          if-no-files-found: error
+          retention-days: 30
+
+  ios:
+    name: iOS release project
+    needs: [rules, license]
+    if: needs.license.outputs.unity == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+      - uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-iOS-prod-${{ hashFiles('ProjectSettings/ProjectVersion.txt', 'Packages/manifest.json', 'Packages/packages-lock.json') }}
+          restore-keys: |
+            Library-iOS-prod-
+            Library-iOS-
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: iOS
+          versioning: Tag
+          customParameters: -prodBuild
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: build/iOS
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    name: Attach release files
+    needs: [android, ios]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/**/*
+          generate_release_notes: true
